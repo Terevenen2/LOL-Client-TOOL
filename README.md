@@ -25,6 +25,7 @@ TODO PART 2:
  - Change the design (will be done once all features works properly)
 
 Known problems to fix:
- - Handle if the tool start and the client isnt
+ - Handle if the tool start and the client isnt runing
  - Change status to online, offline or mobile (make it realy work)
  - Auto queue and re-Queue (prevent the join queue spam once in lobby)
+ - Auto lock ban champion when there is a ban phase
