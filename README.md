@@ -17,6 +17,7 @@ TODO PART 1:
  - Auto runes
  - Auto reroll in game mode allowing rerolls 
  - Auto swap champions with the bench and player wanting to trades based on a prioritie list
+ - Notification when friend become active
  - Add an icon to the software
 
 TODO PART 2:
