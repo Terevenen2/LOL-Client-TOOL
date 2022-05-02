@@ -12,9 +12,11 @@ TODO PART 1:
  - Auto lock, add multiple champions to handle if champion is picked or banned
  - Auto send text in champ select
  - Auto preffered role in lobby
+ - Auto summoner spells
+ - Auto skin select
  - Auto runes
- - Aram auto reroll
- - Aram champ priotities to take in rolled champs pool and accepte trades
+ - Auto reroll in game mode allowing rerolls 
+ - Auto swap champions with the bench and player wanting to trades based on a prioritie list
  - Add an icon to the software
 
 TODO PART 2:
