@@ -11,12 +11,14 @@ TODO:
  - Auto runes
  - Auto ban (with a list for if an allies want the champ or the champ is already banned)
  - Add multiple champions for the auto lock to handle if champion is picked or banned
+ - Auto call role for blind, coop vs ia and game mods in summoner rift
+ - Auto preffered role in lobby
  - The abilite to make runes directly in the tool
  - Allow fast account swap
  - Add an icon to the software
  - Change the design (will be done once all features works properly)
 
-Things to fix:
+Problems to fix:
  - Handle if the tool start and the client isnt
  - Change status to online, offline or mobile (make it realy work)
  - Auto queue and re-Queue (prevent the join queue spam once in lobby)
