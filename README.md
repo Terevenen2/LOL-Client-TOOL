@@ -4,7 +4,6 @@ Features:
  - Auto lock champion (only work if there is no ban phase else the champ will be banned this problem while be fiwed later)
  - Auto honor allie with best KDA
  - Auto accept match
- - Auto queue and re-Queue (dont work at that time)
  - Change status to online, offline or mobile (partially work)
  - Clicking on your summoner name will copy it to clipboard
 
