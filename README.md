@@ -23,6 +23,7 @@ TODO PART 1:
 TODO PART 2:
  - Allow fast account swap
  - The abilite to make runes directly in the tool
+ - Tidy the mess
  - Change the design (will be done once all features works properly)
 
 Known problems to fix:
