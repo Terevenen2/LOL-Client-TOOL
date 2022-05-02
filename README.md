@@ -22,7 +22,7 @@ TODO PART 2:
  - The abilite to make runes directly in the tool
  - Change the design (will be done once all features works properly)
 
-Problems to fix:
+Known problems to fix:
  - Handle if the tool start and the client isnt
  - Change status to online, offline or mobile (make it realy work)
  - Auto queue and re-Queue (prevent the join queue spam once in lobby)
