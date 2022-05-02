@@ -12,6 +12,7 @@ TODO PART 1:
  - Auto lock, add multiple champions to handle if champion is picked or banned
  - Auto send text in champ select
  - Auto preffered role in lobby
+ - Persitent configuration
  - Auto summoner spells
  - Auto skin select
  - Auto runes
