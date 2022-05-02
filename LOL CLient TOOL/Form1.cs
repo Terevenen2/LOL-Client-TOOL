@@ -43,12 +43,14 @@ namespace LOL_CLient_TOOL
         public static int instalockCount = 0;
         public static int downloadingRunes = 0;
         public static int downloadedRunes = 0;
+        public static int AutoQPlayAgianIntervalle = 0;
 
         public static bool formSummonerIconLoadComplete = false;
         public static bool processingAllIcon = false;
         public static bool formSummonerRuneIsSetup = false;
         public static bool instalockIsEnabled = false;
         public static bool formSetupFaild = false;
+        public static bool debug = false;
         
         public string ClientReadyCheckState
         {
@@ -165,6 +167,7 @@ namespace LOL_CLient_TOOL
         public static CheckBox chechBoxAutoLock = new CheckBox();
         public static CheckBox chechBoxAutoQPlayAgain = new CheckBox();
         public static CheckBox chechBoxAutoHonor = new CheckBox();
+        public static CheckBox checkBoxAutoPosition = new CheckBox();
 
         public static TextBox apiEnpoint = new TextBox();
         public static TextBox apiRequestType = new TextBox();
@@ -592,7 +595,7 @@ namespace LOL_CLient_TOOL
             this.Controls.Add(mainFormMenu);
             this.Controls.Add(labelSummonerDisplayName);
             //this.Controls.Add(verifyOwnedIcons);
-            this.Text = "Custom League Client " + version;
+            this.Text = "LOL Client TOOL - game version: " + version;
         }
 
         private static void setupForm()
@@ -660,7 +663,7 @@ namespace LOL_CLient_TOOL
             comboBoxOwnedChampions.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBoxOwnedChampions.Location = new Point(comboBoxSummonerStatus.Location.X + comboBoxSummonerStatus.Width + 5, comboBoxSummonerStatus.Location.Y);
             comboBoxOwnedChampions.SelectedValueChanged += ComboBoxOwnedChampions_SelectedValueChanged;
-            chechBoxAutoAccept.Text = "Auto accept games";
+            chechBoxAutoAccept.Text = "Auto accept";
             chechBoxAutoAccept.TextAlign = ContentAlignment.MiddleLeft;
             chechBoxAutoAccept.Location = new Point(comboBoxOwnedChampions.Location.X + comboBoxOwnedChampions.Width + 5, comboBoxOwnedChampions.Location.Y);
             chechBoxAutoLock.Text = "Auto lock";
@@ -672,6 +675,10 @@ namespace LOL_CLient_TOOL
             chechBoxAutoHonor.Text = "Auto honor";
             chechBoxAutoHonor.TextAlign = ContentAlignment.MiddleLeft;
             chechBoxAutoHonor.Location = new Point(comboBoxOwnedChampions.Location.X + comboBoxOwnedChampions.Width + 5, chechBoxAutoQPlayAgain.Location.Y + chechBoxAutoQPlayAgain.Height);
+            checkBoxAutoPosition.Text = "Auto role";
+            checkBoxAutoPosition.TextAlign = ContentAlignment.MiddleLeft;
+            checkBoxAutoPosition.Location = new Point(chechBoxAutoAccept.Location.X + chechBoxAutoAccept.Width + 5, comboBoxOwnedChampions.Location.Y);
+            checkBoxAutoPosition.Click += CheckBoxAutoPosition_Click1;
             buttonRune.Click += buttonRune_Click;
             tooltip.AutoPopDelay = 32767;
             tooltip.UseAnimation = false;
@@ -719,6 +726,35 @@ namespace LOL_CLient_TOOL
                 comboBoxSummonerStatus.Enabled = true;
                 comboBoxOwnedChampions.Enabled = true;
             }
+        }
+
+        private static void CheckBoxAutoPosition_Click1(object sender, EventArgs e)
+        {
+            if (checkBoxAutoPosition.Checked)
+            {
+                string[] postion = new string[] { "TOP", "JUNGLE", "MIDDLE", "BOTTOM", "UTILITY" };//  TOP JUNGLE MIDDLE BOTTOM UTILITY
+                Form formPosition = new Form();
+                ComboBox position1 = new ComboBox();
+                ComboBox position2 = new ComboBox();
+                position1.DropDownStyle = ComboBoxStyle.DropDownList;
+                position2.DropDownStyle = ComboBoxStyle.DropDownList;
+                position1.Width = 70;
+                position2.Width = 70;
+                foreach (string str in postion) { position1.Items.Add(str); }
+                foreach(string str in postion) { position2.Items.Add(str); }
+                position1.SelectedItem = postion[0];
+                position2.SelectedItem = postion[1];
+                position1.Location = new Point(5, 5);
+                position2.Location = new Point(position1.Width + 5, 5);
+                formPosition.Controls.Add(position1);
+                formPosition.Controls.Add(position2);
+                formPosition.Show();
+            }
+        }
+
+        private static void CheckBoxAutoPosition_Click(object sender, EventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         private static void ComboBoxOwnedChampions_SelectedValueChanged(object sender, EventArgs e)
@@ -1251,11 +1287,6 @@ namespace LOL_CLient_TOOL
             //disabled until there is a good way to get summonner owned icons
             //summonerIcon.Click += new EventHandler(summonerIcon_Click);
             this.Controls.Add(summonerIcon);
-            this.Controls.Add(apiEnpoint);
-            this.Controls.Add(apiEndpointCall);
-            this.Controls.Add(apiRequestType);
-            this.Controls.Add(apiRequestJson);
-            this.Controls.Add(apiEndPointResponse);
             this.Controls.Add(buttonRune);
             this.Controls.Add(comboBoxSummonerStatus);
             this.Controls.Add(comboBoxOwnedChampions);
@@ -1263,6 +1294,15 @@ namespace LOL_CLient_TOOL
             this.Controls.Add(chechBoxAutoLock);
             this.Controls.Add(chechBoxAutoQPlayAgain);
             this.Controls.Add(chechBoxAutoHonor);
+            this.Controls.Add(checkBoxAutoPosition);
+            if (debug)
+            {
+                this.Controls.Add(apiEnpoint);
+                this.Controls.Add(apiEndpointCall);
+                this.Controls.Add(apiRequestType);
+                this.Controls.Add(apiRequestJson);
+                this.Controls.Add(apiEndPointResponse);
+            }
         }
 
         private void ButtonLogin_Click(object sender, EventArgs e)
@@ -1282,15 +1322,14 @@ namespace LOL_CLient_TOOL
         }
 
         private async void OnTimedEvent(Object source, ElapsedEventArgs e)
-        {
-            string actorCellId = "";
-            var clientReadyCheckState = LCURequest("/lol-matchmaking/v1/ready-check", "GET");
-            
+        {            
+            //auto accept start
             if (chechBoxAutoAccept.Checked)
             {
                 LCURequest("/lol-matchmaking/v1/ready-check/accept", "POST", "");
             }
-            
+            //auto accept end
+
             //Honor start
             if (chechBoxAutoHonor.Checked)
             {
@@ -1333,6 +1372,8 @@ namespace LOL_CLient_TOOL
             }
             //honor end
 
+            //auto lock start
+            string actorCellId = "";
             if (chechBoxAutoLock.Checked)
             {
                 string truc = "{\"championId\":266,\"completed\": true}";
@@ -1366,21 +1407,37 @@ namespace LOL_CLient_TOOL
                     }
                 }
             }
-            
-            if (chechBoxAutoQPlayAgain.Checked)
+            //auto lock end
+
+            //reQ/play again start
+            AutoQPlayAgian();
+            //reQ/play again end
+
+        }
+
+        public static void AutoQPlayAgian()
+        {
+            if (AutoQPlayAgianIntervalle == 0)
             {
-                JObject json = JObject.Parse(LCURequest("/lol-gameflow/v1/gameflow-metadata/player-status", "GET").Value);
-                if (json["currentLobbyStatus"]["allowedPlayAgain"].ToString() == "True")
+                if (chechBoxAutoQPlayAgain.Checked)
                 {
-                    LCURequest("/lol-lobby/v2/play-again", "POST");
-                    var data = LCURequest("/lol-lobby/v1/lobby/countdown", "GET").Value;
-                    if (json["currentLobbyStatus"]["isLeader"].ToString() == "True" && data.ToString() == "0")
+                    JObject json = JObject.Parse(LCURequest("/lol-gameflow/v1/gameflow-metadata/player-status", "GET").Value);
+                    if (json["currentLobbyStatus"]["allowedPlayAgain"].ToString().ToUpper() == "True".ToUpper())
                     {
-                        LCURequest("/lol-lobby/v2/lobby/matchmaking/search", "POST");
+                        LCURequest("/lol-lobby/v2/play-again", "POST");
+                        var data = LCURequest("/lol-gameflow/v1/gameflow-phase", "GET").Value;
+                        if (data.ToString().Contains("Lobby"))
+                        {
+                            LCURequest("/lol-lobby/v2/lobby/matchmaking/search", "POST");
+                        }
                     }
                 }
             }
-
+            AutoQPlayAgianIntervalle++;
+            if (AutoQPlayAgianIntervalle > 3)
+            {
+                AutoQPlayAgianIntervalle = 0;
+            }
         }
 
         public static void ChampSelectHandling()
@@ -1529,7 +1586,7 @@ namespace LOL_CLient_TOOL
             aTimer.Elapsed += new ElapsedEventHandler(OnTimedEvent);
             aTimer.Interval = 1000;
             aTimer.Enabled = true;
-            aTimer.AutoReset = true;
+            //aTimer.AutoReset = true;
         }
 
         public static void getSummoner()
