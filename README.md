@@ -7,15 +7,19 @@ Features:
  - Change status to online, offline or mobile (partially work)
  - Clicking on your summoner name will copy it to clipboard
 
-TODO:
- - Auto runes
+TODO PART 1:
  - Auto ban (with a list to prevent banning allie champion or trying to ban an already banned champion)
  - Auto lock, add multiple champions to handle if champion is picked or banned
  - Auto send text in champ select
  - Auto preffered role in lobby
- - The abilite to make runes directly in the tool
- - Allow fast account swap
+ - Auto runes
+ - Aram auto reroll
+ - Aram champ priotities to take in rolled champs pool and accepte trades
  - Add an icon to the software
+
+TODO PART 2:
+ - Allow fast account swap
+ - The abilite to make runes directly in the tool
  - Change the design (will be done once all features works properly)
 
 Problems to fix:
