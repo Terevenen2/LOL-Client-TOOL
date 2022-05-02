@@ -8,12 +8,14 @@ Features:
  - Change status to online, offline or mobile (partially work)
  - Clicking on your summoner name will copy it to clipboard
 
-Planned features:
+TODO:
  - Auto runes
  - Auto ban (with a list for if an allies want the champ or the champ is already banned)
  - Add multiple champions for the auto lock to handle if champion is picked or banned
  - The abilite to make runes directly in the tool
  - Allow fast account swap
+ - Add an icon to the software
+ - Change the design (will be done once all features works properly)
 
 Things to fix:
  - Handle if the tool start and the client isnt
