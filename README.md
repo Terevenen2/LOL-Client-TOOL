@@ -1,7 +1,7 @@
 # LOL-CLient-TOOL automate actions in the league of legends client to make life easier
 
 Features:
- - Auto lock champion (only work if there is no ban phase else the champ will be banned this problem while be fiwed later)
+ - Auto lock champion (only work if there is no ban phase else the champ will be banned this problem while be fixed soon)
  - Auto honor allie with best KDA
  - Auto accept match
  - Change status to online, offline or mobile (partially work)
@@ -9,9 +9,9 @@ Features:
 
 TODO:
  - Auto runes
- - Auto ban (with a list for if an allies want the champ or the champ is already banned)
- - Add multiple champions for the auto lock to handle if champion is picked or banned
- - Auto call role for blind, coop vs ia and game mods in summoner rift
+ - Auto ban (with a list to prevent banning allie champion or trying to ban an already banned champion)
+ - Auto lock, add multiple champions to handle if champion is picked or banned
+ - Auto send text in champ select
  - Auto preffered role in lobby
  - The abilite to make runes directly in the tool
  - Allow fast account swap
