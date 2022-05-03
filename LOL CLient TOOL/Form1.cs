@@ -21,8 +21,7 @@ namespace LOL_CLient_TOOL
 {
     public partial class Form1 : Form
     {
-        private static System.Timers.Timer aTimer;
-        private static readonly HttpClient client = new HttpClient();
+        public static bool debug = false;//set true to display inputs for testing lcu requests
         public static Dictionary<string, string> lesArguments = new Dictionary<string, string>();
         public static Dictionary<string, string> riotCredntials = new Dictionary<string, string>();
         public static Dictionary<int, string> currentSummonerTestedIcon = new Dictionary<int, string>();
@@ -38,7 +37,10 @@ namespace LOL_CLient_TOOL
         public static string DDragonImg = "https://ddragon.leagueoflegends.com/cdn/img/";
         public static string pathRunes = "C:\\Users\\" + Environment.UserName + "\\AppData\\Local\\LOL_Client_TOOL\\runes\\";
         public static string instaLockChampId = "266";
+        public static string position1 = "TOP";
+        public static string position2 = "JUNGLE";
         public static string[] chare = { "/" };
+        public static string[] postions = new string[] { "TOP", "JUNGLE", "MIDDLE", "BOTTOM", "UTILITY", "FILL" };//  TOP JUNGLE MIDDLE BOTTOM UTILITY FILL
         public static int champPickId = 0;
         public static int instalockCount = 0;
         public static int downloadingRunes = 0;
@@ -50,7 +52,6 @@ namespace LOL_CLient_TOOL
         public static bool formSummonerRuneIsSetup = false;
         public static bool instalockIsEnabled = false;
         public static bool formSetupFaild = false;
-        public static bool debug = false;
         
         public string ClientReadyCheckState
         {
@@ -153,6 +154,8 @@ namespace LOL_CLient_TOOL
         public static ComboBox comboBoxRunesPages = new ComboBox();
         public static ComboBox comboBoxSummonerStatus = new ComboBox();
         public static ComboBox comboBoxOwnedChampions = new ComboBox();
+        public static ComboBox comboBoxAutoPosition1 = new ComboBox();
+        public static ComboBox comboBoxAutoPosition2 = new ComboBox();
 
         public static List<ComboBoxIdName> summonerStatus = new List<ComboBoxIdName>();
 
@@ -678,7 +681,19 @@ namespace LOL_CLient_TOOL
             checkBoxAutoPosition.Text = "Auto role";
             checkBoxAutoPosition.TextAlign = ContentAlignment.MiddleLeft;
             checkBoxAutoPosition.Location = new Point(chechBoxAutoAccept.Location.X + chechBoxAutoAccept.Width + 5, comboBoxOwnedChampions.Location.Y);
-            checkBoxAutoPosition.Click += CheckBoxAutoPosition_Click1;
+            checkBoxAutoPosition.Width = 68; 
+            comboBoxAutoPosition1.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboBoxAutoPosition2.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboBoxAutoPosition1.Width = 70;
+            comboBoxAutoPosition2.Width = 70;
+            foreach (string str in postions) { comboBoxAutoPosition1.Items.Add(str); }
+            foreach (string str in postions) { comboBoxAutoPosition2.Items.Add(str); }
+            comboBoxAutoPosition1.SelectedIndexChanged += ComboBoxAutoPosition1_SelectedIndexChanged;
+            comboBoxAutoPosition2.SelectedIndexChanged += ComboBoxAutoPosition2_SelectedIndexChanged;
+            comboBoxAutoPosition1.SelectedItem = postions[0];
+            comboBoxAutoPosition2.SelectedItem = postions[1];
+            comboBoxAutoPosition1.Location = new Point(checkBoxAutoPosition.Location.X + checkBoxAutoPosition.Width + 5, checkBoxAutoPosition.Location.Y);
+            comboBoxAutoPosition2.Location = new Point(comboBoxAutoPosition1.Location.X + comboBoxAutoPosition1.Width + 5, checkBoxAutoPosition.Location.Y);
             buttonRune.Click += buttonRune_Click;
             tooltip.AutoPopDelay = 32767;
             tooltip.UseAnimation = false;
@@ -728,27 +743,27 @@ namespace LOL_CLient_TOOL
             }
         }
 
-        private static void CheckBoxAutoPosition_Click1(object sender, EventArgs e)
+        private static void ComboBoxAutoPosition1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (checkBoxAutoPosition.Checked)
+            if (comboBoxAutoPosition1.SelectedItem != null && comboBoxAutoPosition2.SelectedItem != null)
             {
-                string[] postion = new string[] { "TOP", "JUNGLE", "MIDDLE", "BOTTOM", "UTILITY" };//  TOP JUNGLE MIDDLE BOTTOM UTILITY
-                Form formPosition = new Form();
-                ComboBox position1 = new ComboBox();
-                ComboBox position2 = new ComboBox();
-                position1.DropDownStyle = ComboBoxStyle.DropDownList;
-                position2.DropDownStyle = ComboBoxStyle.DropDownList;
-                position1.Width = 70;
-                position2.Width = 70;
-                foreach (string str in postion) { position1.Items.Add(str); }
-                foreach(string str in postion) { position2.Items.Add(str); }
-                position1.SelectedItem = postion[0];
-                position2.SelectedItem = postion[1];
-                position1.Location = new Point(5, 5);
-                position2.Location = new Point(position1.Width + 5, 5);
-                formPosition.Controls.Add(position1);
-                formPosition.Controls.Add(position2);
-                formPosition.Show();
+                if (comboBoxAutoPosition2.SelectedItem == comboBoxAutoPosition1.SelectedItem)
+                {
+                    comboBoxAutoPosition2.SelectedItem = position1;
+                }
+                position1 = comboBoxAutoPosition1.SelectedItem.ToString();
+            }
+        }
+
+        private static void ComboBoxAutoPosition2_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboBoxAutoPosition1.SelectedItem != null && comboBoxAutoPosition2.SelectedItem != null)
+            {
+                if (comboBoxAutoPosition1.SelectedItem == comboBoxAutoPosition2.SelectedItem)
+                {
+                    comboBoxAutoPosition1.SelectedItem = position2;
+                }
+                position2 = comboBoxAutoPosition2.SelectedItem.ToString();
             }
         }
 
@@ -1295,6 +1310,8 @@ namespace LOL_CLient_TOOL
             this.Controls.Add(chechBoxAutoQPlayAgain);
             this.Controls.Add(chechBoxAutoHonor);
             this.Controls.Add(checkBoxAutoPosition);
+            this.Controls.Add(comboBoxAutoPosition1);
+            this.Controls.Add(comboBoxAutoPosition2);
             if (debug)
             {
                 this.Controls.Add(apiEnpoint);
@@ -1303,6 +1320,8 @@ namespace LOL_CLient_TOOL
                 this.Controls.Add(apiRequestJson);
                 this.Controls.Add(apiEndPointResponse);
             }
+            //this.Icon = Properties.Resources.LOL_Client_TOOL;
+            //this.ShowInTaskbar = true;
         }
 
         private void ButtonLogin_Click(object sender, EventArgs e)
@@ -1374,15 +1393,24 @@ namespace LOL_CLient_TOOL
 
             //auto lock start
             string actorCellId = "";
+            List<string> bans = new List<string>();
             if (chechBoxAutoLock.Checked)
             {
-                string truc = "{\"championId\":266,\"completed\": true}";
-                //var result = LCURequest("/lol-champ-select/v1/session/actions/" + currentSummoner.summonerId.ToString(), "PATCH", truc);
-                //MessageBox.Show(result.Value, result.Key);
                 var result = LCURequest("/lol-champ-select/v1/session", "GET");
+
                 if (result.Key == "OK")
                 {
                     JObject json = JObject.Parse(result.Value);
+
+                    foreach (var tempBan in json["bans"]["myTeamBans"])
+                    {
+                        bans.Add(tempBan.ToString());
+                    }
+                    foreach (var tempBan in json["bans"]["theirTeamBans"])
+                    {
+                        bans.Add(tempBan.ToString());
+                    }
+
                     foreach (var team in json["myTeam"])
                     {
                         if (team["summonerId"].ToString() == currentSummoner.summonerId.ToString())
@@ -1397,7 +1425,7 @@ namespace LOL_CLient_TOOL
                             if (team["actorCellId"].ToString() == actorCellId)
                             {
                                 string isInProgrss = team["isInProgress"].ToString();
-                                if (isInProgrss == "True")
+                                if (isInProgrss == "True" && team["type"].ToString().Contains("pick") && !bans.Contains(instaLockChampId))
                                 {
                                     string jsonDataForLock = "{  \"actorCellId\": " + actorCellId + ",  \"championId\": " + instaLockChampId + ",  \"completed\": true,  \"id\": " + team["id"].ToString() + ",  \"isAllyAction\": true,  \"type\": \"string\"}";
                                     var resp = LCURequest("/lol-champ-select/v1/session/actions/" + team["id"].ToString(), "PATCH", jsonDataForLock);
@@ -1413,6 +1441,13 @@ namespace LOL_CLient_TOOL
             AutoQPlayAgian();
             //reQ/play again end
 
+            //AUTO POSITION start
+            if (checkBoxAutoPosition.Checked)
+            {
+                string json = "{\"firstPreference\":\"" + position1 + "\",\"secondPreference\":\"" + position2 + "\"}";
+                LCURequest("/lol-lobby/v2/lobby/members/localMember/position-preferences", "PUT", json);
+            }
+            //AUTO POSITION end
         }
 
         public static void AutoQPlayAgian()
