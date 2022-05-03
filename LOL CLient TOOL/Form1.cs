@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.IO;
 using System.Net;
-using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Timers;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
@@ -28,6 +25,7 @@ namespace LOL_CLient_TOOL
         public static Dictionary<int, Point> posSubMainRune = new Dictionary<int, Point>();
         public static List<string> summonerIcons = new List<string>();
         public static List<string> currentSummonerOwnedIcons = new List<string>();
+        public static List<string> conversationsMessageSent = new List<string>();
         public static string port = "";
         public static string portRiotClient = "";
         public static string autorization = "";
@@ -171,6 +169,7 @@ namespace LOL_CLient_TOOL
         public static CheckBox chechBoxAutoQPlayAgain = new CheckBox();
         public static CheckBox chechBoxAutoHonor = new CheckBox();
         public static CheckBox checkBoxAutoPosition = new CheckBox();
+        public static CheckBox checkBoxAutoMessage = new CheckBox();
 
         public static TextBox apiEnpoint = new TextBox();
         public static TextBox apiRequestType = new TextBox();
@@ -178,6 +177,7 @@ namespace LOL_CLient_TOOL
         public static TextBox apiEndPointResponse = new TextBox();
         public static TextBox textBoxId = new TextBox();
         public static TextBox textBoxPassword = new TextBox();
+        public static TextBox textBoxConversationMessage = new TextBox();
 
         public static Button apiEndpointCall = new Button();
         public static Button buttonRune = new Button();
@@ -694,6 +694,10 @@ namespace LOL_CLient_TOOL
             comboBoxAutoPosition2.SelectedItem = postions[1];
             comboBoxAutoPosition1.Location = new Point(checkBoxAutoPosition.Location.X + checkBoxAutoPosition.Width + 5, checkBoxAutoPosition.Location.Y);
             comboBoxAutoPosition2.Location = new Point(comboBoxAutoPosition1.Location.X + comboBoxAutoPosition1.Width + 5, checkBoxAutoPosition.Location.Y);
+            checkBoxAutoMessage.Text = "Auto message";
+            checkBoxAutoMessage.Location = new Point(checkBoxAutoPosition.Location.X, checkBoxAutoPosition.Location.Y + checkBoxAutoPosition.Height);
+            textBoxConversationMessage.Text = "Hello everyone";
+            textBoxConversationMessage.Location = new Point(checkBoxAutoMessage.Location.X + checkBoxAutoMessage.Width, checkBoxAutoMessage.Location.Y);
             buttonRune.Click += buttonRune_Click;
             tooltip.AutoPopDelay = 32767;
             tooltip.UseAnimation = false;
@@ -1312,6 +1316,8 @@ namespace LOL_CLient_TOOL
             this.Controls.Add(checkBoxAutoPosition);
             this.Controls.Add(comboBoxAutoPosition1);
             this.Controls.Add(comboBoxAutoPosition2);
+            this.Controls.Add(checkBoxAutoMessage);
+            this.Controls.Add(textBoxConversationMessage);
             if (debug)
             {
                 this.Controls.Add(apiEnpoint);
@@ -1448,6 +1454,26 @@ namespace LOL_CLient_TOOL
                 LCURequest("/lol-lobby/v2/lobby/members/localMember/position-preferences", "PUT", json);
             }
             //AUTO POSITION end
+
+            //AUTO MESSAGE START
+            if (checkBoxAutoMessage.Checked)
+            {
+                JArray json = JArray.Parse(LCURequest("/lol-chat/v1/conversations", "GET").Value);
+                foreach (var conversations in json.Root)
+                {
+                    if (conversations["type"].ToString() == "championSelect")//game type: customGame 
+                    {
+                        string conversationId = conversations["id"].ToString();
+                        if (!conversationsMessageSent.Contains(conversationId))
+                        {
+                            string boddy = "{\"body\":\"" + textBoxConversationMessage.Text + "\"}";
+                            LCURequest("/lol-chat/v1/conversations/" + conversationId + "/messages", "POST", boddy);
+                            conversationsMessageSent.Add(conversationId);
+                        }
+                    }
+                }
+            }
+            //AUTO MESSAGE END
         }
 
         public static void AutoQPlayAgian()
