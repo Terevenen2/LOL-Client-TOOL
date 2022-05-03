@@ -6,14 +6,14 @@ Features:
  - Auto honor allie with best KDA
  - Auto accept match
  - Change status to online, offline or mobile (partially work)
- - Auto play again
+ - Auto play again (work sometime)
+ - Auto message when joining champ select.
  - Auto preffered role in lobby
  - Clicking on your summoner name will copy it to the clipboard
 
 TODO PART 1:
  - Auto ban (with a list to prevent banning allie champion or trying to ban an already banned champion)
  - Auto lock, add multiple champions to handle if champion is picked or banned
- - Auto send text in champ select
  - Auto summoner spells
  - Auto skin select
  - Auto runes
