@@ -1,4 +1,5 @@
 # LOL-CLient-TOOL automate actions in the league of legends client to make life easier
+<p align="center"><img src="https://user-images.githubusercontent.com/21199858/166489461-f28fbae9-b620-474e-9fc6-7a58566e584b.png" width="150"></p>
 
 Features:
  - Auto lock champion (only work if there is no ban phase else the champ will be banned this problem while be fixed soon)
@@ -6,13 +7,13 @@ Features:
  - Auto accept match
  - Change status to online, offline or mobile (partially work)
  - Auto play again
+ - Auto preffered role in lobby
  - Clicking on your summoner name will copy it to the clipboard
 
 TODO PART 1:
  - Auto ban (with a list to prevent banning allie champion or trying to ban an already banned champion)
  - Auto lock, add multiple champions to handle if champion is picked or banned
  - Auto send text in champ select
- - Auto preffered role in lobby
  - Auto summoner spells
  - Auto skin select
  - Auto runes
@@ -20,7 +21,6 @@ TODO PART 1:
  - Auto swap champions with the bench and player wanting to trades based on a prioritie list
  - Notification when friend become active
  - Persitent configuration
- - Add an icon to the software
 
 TODO PART 2:
  - Allow fast account swap
@@ -31,4 +31,4 @@ TODO PART 2:
 Known problems to fix:
  - Handle if the tool start and the client isnt runing
  - Change status to online, offline or mobile (make it realy work)
- - Auto lock ban champion you want to play when there is a ban phase
+
