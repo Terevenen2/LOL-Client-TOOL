@@ -1,4 +1,5 @@
 # LOL-CLient-TOOL automate actions in the league of legends client to make life easier
+<p align="center"><img src="https://user-images.githubusercontent.com/21199858/166489461-f28fbae9-b620-474e-9fc6-7a58566e584b.png" width="150"></p>
 
 Features:
  - Auto lock champion (only work if there is no ban phase else the champ will be banned this problem while be fixed soon)
@@ -30,3 +31,4 @@ TODO PART 2:
 Known problems to fix:
  - Handle if the tool start and the client isnt runing
  - Change status to online, offline or mobile (make it realy work)
+
