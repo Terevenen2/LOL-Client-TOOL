@@ -5,20 +5,21 @@ Features:
  - Auto honor allie with best KDA
  - Auto accept match
  - Change status to online, offline or mobile (partially work)
- - Clicking on your summoner name will copy it to clipboard
+ - Auto play again
+ - Clicking on your summoner name will copy it to the clipboard
 
 TODO PART 1:
  - Auto ban (with a list to prevent banning allie champion or trying to ban an already banned champion)
  - Auto lock, add multiple champions to handle if champion is picked or banned
  - Auto send text in champ select
  - Auto preffered role in lobby
- - Persitent configuration
  - Auto summoner spells
  - Auto skin select
  - Auto runes
- - Auto reroll in game mode allowing rerolls 
+ - Auto reroll in gamemode allowing rerolls
  - Auto swap champions with the bench and player wanting to trades based on a prioritie list
  - Notification when friend become active
+ - Persitent configuration
  - Add an icon to the software
 
 TODO PART 2:
@@ -30,5 +31,4 @@ TODO PART 2:
 Known problems to fix:
  - Handle if the tool start and the client isnt runing
  - Change status to online, offline or mobile (make it realy work)
- - Auto queue and re-Queue (prevent the join queue spam once in lobby)
- - Auto lock ban champion when there is a ban phase
+ - Auto lock ban champion that you want to play when there is a ban phase
