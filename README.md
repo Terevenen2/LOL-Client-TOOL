@@ -31,4 +31,5 @@ TODO PART 2:
 Known problems to fix:
  - Handle if the tool start and the client isnt runing
  - Change status to online, offline or mobile (make it realy work)
+ - Play again still have issues
 
