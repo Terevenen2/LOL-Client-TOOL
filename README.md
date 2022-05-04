@@ -1,4 +1,4 @@
-# LOL-CLient-TOOL automate actions in the league of legends client to make life easier
+# LOL-Client-TOOL automate actions in the league of legends client to make life easier
 <p align="center"><img src="https://user-images.githubusercontent.com/21199858/166489461-f28fbae9-b620-474e-9fc6-7a58566e584b.png" width="150"></p>
 
 <p align="center"><img src="https://user-images.githubusercontent.com/21199858/166520722-5824ad8b-d232-4d86-b78b-e25f507edc69.png" width="900"></p>
