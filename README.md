@@ -4,12 +4,12 @@
 <p align="center"><img src="https://user-images.githubusercontent.com/21199858/166520722-5824ad8b-d232-4d86-b78b-e25f507edc69.png" width="900"></p>
 
 Features:
- - Auto lock champion (only work if there is no ban phase else the champ will be banned this problem while be fixed soon)
+ - Auto lock champion
  - Auto honor allie with best KDA
  - Auto accept match
  - Change status to online, offline or mobile (partially work)
  - Auto play again (work sometime)
- - Auto message when joining champ select.
+ - Auto message when joining champ select
  - Auto preffered role in lobby
  - Clicking on your summoner name will copy it to the clipboard
 
@@ -34,4 +34,3 @@ Known problems to fix:
  - Handle if the tool start and the client isnt runing
  - Change status to online, offline or mobile (make it realy work)
  - Play again still have issues
-
