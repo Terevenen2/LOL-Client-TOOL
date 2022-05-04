@@ -1,7 +1,7 @@
 # LOL-Client-TOOL automate actions in the league of legends client to make life easier
 <p align="center"><img src="https://user-images.githubusercontent.com/21199858/166489461-f28fbae9-b620-474e-9fc6-7a58566e584b.png" width="150"></p>
 
-<p align="center"><img src="https://user-images.githubusercontent.com/21199858/166520722-5824ad8b-d232-4d86-b78b-e25f507edc69.png" width="900"></p>
+<p align="center"><img src="https://user-images.githubusercontent.com/21199858/166827821-8f6d8d99-7247-43b8-96c1-d71ac94920e2.png" width="900"></p>
 
 ## Features
  - Auto lock champion
@@ -11,17 +11,17 @@
  - Auto play again (work sometime)
  - Auto message when joining champ select
  - Auto preffered role in lobby
+ - Auto reroll when possible
+ - Auto skin when none selected
  - Clicking on your summoner name will copy it to the clipboard
 
 ## TODO FOR V1
- - Auto reroll when possible
- - Auto skin select if none selected
  - Auto summoner spells based on role, champions and allies
  - Auto runes scraped from the web
- - Auto swap champions with the bench and player wanting to trades based on a champion prioritie list
  - Notification when friend become active
+ - Advanced champions list for smart drafts handling (pick, ban, trade and gamemods bench)
  - Auto ban (with a list to prevent banning allie champion or trying to ban an already banned champion)
- - Auto lock/ban, add multiple champions to handle if champion is picked or banned
+ - Auto swap champions with the bench and player wanting to trades based on a champion prioritie list
  - Persitent configuration
  - Change the design
 
