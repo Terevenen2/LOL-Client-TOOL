@@ -14,14 +14,14 @@
  - Clicking on your summoner name will copy it to the clipboard
 
 ## TODO FOR V1
- - Auto ban (with a list to prevent banning allie champion or trying to ban an already banned champion)
- - Auto lock/ban, add multiple champions to handle if champion is picked or banned
- - Auto summoner spells based on role, champions and allies
- - Auto skin select if none selected
- - Auto runes scraped from the web
  - Auto reroll when possible
+ - Auto skin select if none selected
+ - Auto summoner spells based on role, champions and allies
+ - Auto runes scraped from the web
  - Auto swap champions with the bench and player wanting to trades based on a champion prioritie list
  - Notification when friend become active
+ - Auto ban (with a list to prevent banning allie champion or trying to ban an already banned champion)
+ - Auto lock/ban, add multiple champions to handle if champion is picked or banned
  - Persitent configuration
  - Change the design
 
