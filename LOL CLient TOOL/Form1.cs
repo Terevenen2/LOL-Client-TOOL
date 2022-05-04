@@ -170,6 +170,8 @@ namespace LOL_CLient_TOOL
         public static CheckBox chechBoxAutoHonor = new CheckBox();
         public static CheckBox checkBoxAutoPosition = new CheckBox();
         public static CheckBox checkBoxAutoMessage = new CheckBox();
+        public static CheckBox checkBoxAutoReroll = new CheckBox();
+        public static CheckBox checkBoxAutoSkin = new CheckBox();
 
         public static TextBox apiEnpoint = new TextBox();
         public static TextBox apiRequestType = new TextBox();
@@ -595,7 +597,7 @@ namespace LOL_CLient_TOOL
             InitializeComponent();
             SetTimer();
             getVersion();
-            this.Controls.Add(mainFormMenu);
+            //this.Controls.Add(mainFormMenu);
             this.Controls.Add(labelSummonerDisplayName);
             //this.Controls.Add(verifyOwnedIcons);
             this.Text = "LOL Client TOOL - game version: " + version;
@@ -696,6 +698,10 @@ namespace LOL_CLient_TOOL
             comboBoxAutoPosition2.Location = new Point(comboBoxAutoPosition1.Location.X + comboBoxAutoPosition1.Width + 5, checkBoxAutoPosition.Location.Y);
             checkBoxAutoMessage.Text = "Auto message";
             checkBoxAutoMessage.Location = new Point(checkBoxAutoPosition.Location.X, checkBoxAutoPosition.Location.Y + checkBoxAutoPosition.Height);
+            checkBoxAutoReroll.Text = "Auto reroll";
+            checkBoxAutoReroll.Location = new Point(checkBoxAutoMessage.Location.X, checkBoxAutoMessage.Location.Y + checkBoxAutoMessage.Height);
+            checkBoxAutoSkin.Text = "Auto skin";
+            checkBoxAutoSkin.Location = new Point(checkBoxAutoReroll.Location.X, checkBoxAutoReroll.Location.Y + checkBoxAutoReroll.Height);
             textBoxConversationMessage.Text = "Hello everyone";
             textBoxConversationMessage.Location = new Point(checkBoxAutoMessage.Location.X + checkBoxAutoMessage.Width, checkBoxAutoMessage.Location.Y);
             buttonRune.Click += buttonRune_Click;
@@ -1318,6 +1324,8 @@ namespace LOL_CLient_TOOL
             this.Controls.Add(comboBoxAutoPosition2);
             this.Controls.Add(checkBoxAutoMessage);
             this.Controls.Add(textBoxConversationMessage);
+            this.Controls.Add(checkBoxAutoReroll);
+            this.Controls.Add(checkBoxAutoSkin);
             if (debug)
             {
                 this.Controls.Add(apiEnpoint);
@@ -1325,6 +1333,10 @@ namespace LOL_CLient_TOOL
                 this.Controls.Add(apiRequestType);
                 this.Controls.Add(apiRequestJson);
                 this.Controls.Add(apiEndPointResponse);
+            }
+            else
+            {
+                this.Height = 180;
             }
             //this.Icon = Properties.Resources.LOL_Client_TOOL;
             //this.ShowInTaskbar = true;
@@ -1347,7 +1359,14 @@ namespace LOL_CLient_TOOL
         }
 
         private async void OnTimedEvent(Object source, ElapsedEventArgs e)
-        {            
+        {
+            //Keep json for the loop START
+            var lolChampSelectV1Session = new KeyValuePair<string, string>();
+            if (checkBoxAutoReroll.Checked || chechBoxAutoLock.Checked || checkBoxAutoSkin.Checked)
+            {
+                lolChampSelectV1Session = LCURequest("/lol-champ-select/v1/session", "GET");
+            }
+            //Keep json for the loop END
             //auto accept start
             if (chechBoxAutoAccept.Checked)
             {
@@ -1402,11 +1421,11 @@ namespace LOL_CLient_TOOL
             List<string> bans = new List<string>();
             if (chechBoxAutoLock.Checked)
             {
-                var result = LCURequest("/lol-champ-select/v1/session", "GET");
+                
 
-                if (result.Key == "OK")
+                if (lolChampSelectV1Session.Key == "OK")
                 {
-                    JObject json = JObject.Parse(result.Value);
+                    JObject json = JObject.Parse(lolChampSelectV1Session.Value);
 
                     foreach (var tempBan in json["bans"]["myTeamBans"])
                     {
@@ -1474,6 +1493,70 @@ namespace LOL_CLient_TOOL
                 }
             }
             //AUTO MESSAGE END
+
+            //AUTO REROLL START
+            if (checkBoxAutoReroll.Checked)
+            {
+                if (lolChampSelectV1Session.Key == "OK")
+                {
+                    JObject json = JObject.Parse(lolChampSelectV1Session.Value);
+                    if (json["allowRerolling"].ToString().ToLower() == "true")
+                    {
+                        LCURequest("/lol-champ-select/v1/session/my-selection/reroll", "POST");
+                    }
+                }
+            }
+            //AUTO REROLL END
+
+            //AUTO SKIN START
+            if (checkBoxAutoSkin.Checked)
+            {
+                //  /lol-champ-select/v1/skin-carousel-skins   GET
+                //  /lol-champ-select/v1/pickable-skin-ids  GET
+                //  /lol-champ-select/v1/session/my-selection     patch
+                //{
+                // "selectedSkinId": 0,
+                // "spell1Id": 0,
+                // "spell2Id": 0,
+                // "wardSkinId": 0
+                //}
+                if (lolChampSelectV1Session.Key == "OK")
+                {
+                    JObject json = JObject.Parse(lolChampSelectV1Session.Value);
+                    foreach (var player in json["myTeam"])
+                    {
+                        if (player["summonerId"].ToString() == currentSummoner.summonerId && player["selectedSkinId"].ToString() != "0")
+                        {
+                            List<string> ownedSkins = new List<string>();
+                            var skins = JArray.Parse(LCURequest("/lol-champ-select/v1/skin-carousel-skins", "GET").Value);
+                            foreach (var sk in skins)
+                            {
+                                string unlocked = sk["unlocked"].ToString().ToLower();
+                                string isbase = sk["isBase"].ToString().ToLower();
+                                if (unlocked == "true" && isbase != "true")
+                                {
+                                    ownedSkins.Add(sk["id"].ToString());
+                                }
+                            }
+                            foreach (var skin in skins)
+                            {
+                                string selectedSkinId = player["selectedSkinId"].ToString();
+                                string isBase = skin["isBase"].ToString().ToLower();
+                                string skinId = skin["id"].ToString();
+                                if (skinId == selectedSkinId && isBase == "true")
+                                {
+                                    if (ownedSkins.Count > 0)
+                                    {
+                                        string changeLoadout = "{\"selectedSkinId\":" + ownedSkins[ownedSkins.Count - 1] + "}";
+                                        LCURequest("/lol-champ-select/v1/session/my-selection", "PATCH", changeLoadout);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            //AUTO SKIN END
         }
 
         public static void AutoQPlayAgian()
@@ -1499,17 +1582,6 @@ namespace LOL_CLient_TOOL
             {
                 AutoQPlayAgianIntervalle = 0;
             }
-        }
-
-        public static void ChampSelectHandling()
-        {
-            KeyValuePair<string, string> result = LCURequest("/lol-champ-select/v1/session", "GET", "");
-            if (result.Key == "OK")
-            {
-                FormChampSelect.Show();
-            }
-            apiEndPointResponse.Text = "avion " + champPickId.ToString();
-            champPickId++;
         }
 
         private static KeyValuePair<string, string> LCURequest(string url = "", string method = "", string json = "")
