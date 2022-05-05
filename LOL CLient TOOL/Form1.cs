@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Timers;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
@@ -19,6 +20,8 @@ namespace LOL_CLient_TOOL
     public partial class Form1 : Form
     {
         public static bool debug = false;//set true to display inputs for testing lcu requests
+        public static ConfigurationData configData = new ConfigurationData();
+
         public static Dictionary<string, string> lesArguments = new Dictionary<string, string>();
         public static Dictionary<string, string> riotCredntials = new Dictionary<string, string>();
         public static Dictionary<int, string> currentSummonerTestedIcon = new Dictionary<int, string>();
@@ -67,6 +70,39 @@ namespace LOL_CLient_TOOL
 
         public static List<leagueRune> leagueOfLegendsRunes = new List<leagueRune>();
 
+        public class ConfigurationData
+        {
+            public bool autoAccept { get; set; }
+            public bool autoPick { get; set; }
+            public bool autoPlayAgain { get; set; }
+            public bool autoHonor { get; set; }
+            public bool autoRole { get; set; }
+            public string autoRolePosition1 { get; set; }
+            public string autoRolePosition2 { get; set; }
+            public bool autoMessage { get; set; }
+            public string autoMessageText { get; set; }
+            public bool autoReroll { get; set; }
+            public bool autoSkin { get; set; }
+            public List<championsPrio> championsPrioList { get; set; }
+        }
+
+        public class championsPrio
+        {
+            int id { get; set; }
+            string name { get; set; }
+            bool isOwned { get; set; }
+            double prioTop { get; set; }
+            double prioJungle { get; set; }
+            double prioMid { get; set; }
+            double prioBottom { get; set; }
+            double prioUtility { get; set; }
+            double prioNoDraft { get; set; }
+            bool isDraft { get; set; }
+            bool isSoloDuo { get; set; }
+            bool isFlex { get; set; }
+            bool isBlind { get; set; }
+            bool isAram { get; set; }
+        }
         public class RunePage
         {
             public bool current { get; set; }
@@ -164,10 +200,10 @@ namespace LOL_CLient_TOOL
         public static MenuStrip mainFormMenu = new MenuStrip();
 
         public static CheckBox verifyOwnedIcons = new CheckBox();
-        public static CheckBox chechBoxAutoAccept = new CheckBox();
-        public static CheckBox chechBoxAutoLock = new CheckBox();
-        public static CheckBox chechBoxAutoQPlayAgain = new CheckBox();
-        public static CheckBox chechBoxAutoHonor = new CheckBox();
+        public static CheckBox checkBoxAutoAccept = new CheckBox();
+        public static CheckBox checkBoxAutoLock = new CheckBox();
+        public static CheckBox checkBoxAutoQPlayAgain = new CheckBox();
+        public static CheckBox checkBoxAutoHonor = new CheckBox();
         public static CheckBox checkBoxAutoPosition = new CheckBox();
         public static CheckBox checkBoxAutoMessage = new CheckBox();
         public static CheckBox checkBoxAutoReroll = new CheckBox();
@@ -605,6 +641,41 @@ namespace LOL_CLient_TOOL
 
         private static void setupForm()
         {
+            string configPath = "C:\\Users\\" + Environment.UserName + "\\AppData\\Local\\LOL_Client_TOOL\\config\\";
+            Directory.CreateDirectory(configPath);
+            bool isConfigured = false;
+            JObject configuration = new JObject();
+            if (File.Exists(configPath + "config.json"))
+            {
+                //populate form
+                isConfigured = true;
+                string tempConf = File.ReadAllText(configPath + "config.json");
+                configuration = JObject.Parse(tempConf);
+                JsonConvert.PopulateObject(tempConf, configData);
+                checkBoxAutoAccept.Checked = Convert.ToBoolean(configuration["autoAccept"].ToString());
+                configData.autoAccept = checkBoxAutoAccept.Checked;
+                checkBoxAutoLock.Checked = Convert.ToBoolean(configuration["autoPick"].ToString());
+                configData.autoPick = checkBoxAutoLock.Checked;
+                checkBoxAutoQPlayAgain.Checked = Convert.ToBoolean(configuration["autoPlayAgain"].ToString());
+                configData.autoPlayAgain = checkBoxAutoQPlayAgain.Checked;
+                checkBoxAutoHonor.Checked = Convert.ToBoolean(configuration["autoHonor"].ToString());
+                configData.autoHonor = checkBoxAutoHonor.Checked;
+                checkBoxAutoPosition.Checked = Convert.ToBoolean(configuration["autoRole"].ToString());
+                configData.autoRole = checkBoxAutoPosition.Checked;
+                comboBoxAutoPosition1.SelectedItem = configuration["autoRolePosition1"].ToString();
+                comboBoxAutoPosition2.SelectedItem = configuration["autoRolePosition2"].ToString();
+                if (comboBoxAutoPosition1.SelectedItem != null) { configData.autoRolePosition1 = comboBoxAutoPosition1.SelectedItem.ToString(); }
+                if (comboBoxAutoPosition2.SelectedItem != null) { configData.autoRolePosition2 = comboBoxAutoPosition2.SelectedItem.ToString(); }
+                checkBoxAutoMessage.Checked = Convert.ToBoolean(configuration["autoMessage"].ToString());
+                configData.autoMessage = checkBoxAutoMessage.Checked;
+                textBoxConversationMessage.Text = configuration["autoMessageText"].ToString();
+                configData.autoMessageText = textBoxConversationMessage.Text;
+                checkBoxAutoReroll.Checked = Convert.ToBoolean(configuration["autoReroll"].ToString());
+                configData.autoReroll = checkBoxAutoReroll.Checked;
+                checkBoxAutoSkin.Checked = Convert.ToBoolean(configuration["autoSkin"].ToString());
+                configData.autoSkin = checkBoxAutoSkin.Checked;
+            }
+
             getSummoner();
             runeSetup();
             mainFormMenu.BackColor = Color.Gray;
@@ -623,6 +694,7 @@ namespace LOL_CLient_TOOL
             FormSummonerRunes.Text = "Your rune pages";
 
             labelSummonerDisplayName.Text = currentSummoner.displayName;
+            //labelSummonerDisplayName.Text = "summoner name";
             labelSummonerDisplayName.Location = new Point(5, 25);
             labelSummonerDisplayName.Click += LabelSummonerDisplayName_Click;
             summonerStatus.Add(new ComboBoxIdName {Id = 0,Name = "online".ToUpper() });
@@ -668,22 +740,27 @@ namespace LOL_CLient_TOOL
             comboBoxOwnedChampions.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBoxOwnedChampions.Location = new Point(comboBoxSummonerStatus.Location.X + comboBoxSummonerStatus.Width + 5, comboBoxSummonerStatus.Location.Y);
             comboBoxOwnedChampions.SelectedValueChanged += ComboBoxOwnedChampions_SelectedValueChanged;
-            chechBoxAutoAccept.Text = "Auto accept";
-            chechBoxAutoAccept.TextAlign = ContentAlignment.MiddleLeft;
-            chechBoxAutoAccept.Location = new Point(comboBoxOwnedChampions.Location.X + comboBoxOwnedChampions.Width + 5, comboBoxOwnedChampions.Location.Y);
-            chechBoxAutoLock.Text = "Auto lock";
-            chechBoxAutoLock.TextAlign = ContentAlignment.MiddleLeft;
-            chechBoxAutoLock.Location = new Point(comboBoxOwnedChampions.Location.X + comboBoxOwnedChampions.Width + 5, comboBoxOwnedChampions.Location.Y + chechBoxAutoAccept.Height);
-            chechBoxAutoQPlayAgain.Text = "Re Q/Play";
-            chechBoxAutoQPlayAgain.TextAlign = ContentAlignment.MiddleLeft;
-            chechBoxAutoQPlayAgain.Location = new Point(comboBoxOwnedChampions.Location.X + comboBoxOwnedChampions.Width + 5, chechBoxAutoLock.Location.Y + chechBoxAutoLock.Height);
-            chechBoxAutoHonor.Text = "Auto honor";
-            chechBoxAutoHonor.TextAlign = ContentAlignment.MiddleLeft;
-            chechBoxAutoHonor.Location = new Point(comboBoxOwnedChampions.Location.X + comboBoxOwnedChampions.Width + 5, chechBoxAutoQPlayAgain.Location.Y + chechBoxAutoQPlayAgain.Height);
+            checkBoxAutoAccept.Text = "Auto accept";
+            checkBoxAutoAccept.TextAlign = ContentAlignment.MiddleLeft;
+            checkBoxAutoAccept.Location = new Point(comboBoxOwnedChampions.Location.X + comboBoxOwnedChampions.Width + 5, comboBoxOwnedChampions.Location.Y);
+            checkBoxAutoAccept.Click += CheckBoxAutoAccept_Click;
+            checkBoxAutoLock.Text = "Auto lock";
+            checkBoxAutoLock.TextAlign = ContentAlignment.MiddleLeft;
+            checkBoxAutoLock.Location = new Point(comboBoxOwnedChampions.Location.X + comboBoxOwnedChampions.Width + 5, comboBoxOwnedChampions.Location.Y + checkBoxAutoAccept.Height);
+            checkBoxAutoLock.Click += CheckBoxAutoLock_Click;
+            checkBoxAutoQPlayAgain.Text = "Re Q/Play";
+            checkBoxAutoQPlayAgain.TextAlign = ContentAlignment.MiddleLeft;
+            checkBoxAutoQPlayAgain.Location = new Point(comboBoxOwnedChampions.Location.X + comboBoxOwnedChampions.Width + 5, checkBoxAutoLock.Location.Y + checkBoxAutoLock.Height);
+            checkBoxAutoQPlayAgain.Click += CheckBoxAutoQPlayAgain_Click;
+            checkBoxAutoHonor.Text = "Auto honor";
+            checkBoxAutoHonor.TextAlign = ContentAlignment.MiddleLeft;
+            checkBoxAutoHonor.Location = new Point(comboBoxOwnedChampions.Location.X + comboBoxOwnedChampions.Width + 5, checkBoxAutoQPlayAgain.Location.Y + checkBoxAutoQPlayAgain.Height);
+            checkBoxAutoHonor.Click += CheckBoxAutoHonor_Click;
             checkBoxAutoPosition.Text = "Auto role";
             checkBoxAutoPosition.TextAlign = ContentAlignment.MiddleLeft;
-            checkBoxAutoPosition.Location = new Point(chechBoxAutoAccept.Location.X + chechBoxAutoAccept.Width + 5, comboBoxOwnedChampions.Location.Y);
-            checkBoxAutoPosition.Width = 68; 
+            checkBoxAutoPosition.Location = new Point(checkBoxAutoAccept.Location.X + checkBoxAutoAccept.Width + 5, comboBoxOwnedChampions.Location.Y);
+            checkBoxAutoPosition.Width = 68;
+            checkBoxAutoPosition.Click += CheckBoxAutoPosition_Click1;
             comboBoxAutoPosition1.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBoxAutoPosition2.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBoxAutoPosition1.Width = 70;
@@ -698,12 +775,19 @@ namespace LOL_CLient_TOOL
             comboBoxAutoPosition2.Location = new Point(comboBoxAutoPosition1.Location.X + comboBoxAutoPosition1.Width + 5, checkBoxAutoPosition.Location.Y);
             checkBoxAutoMessage.Text = "Auto message";
             checkBoxAutoMessage.Location = new Point(checkBoxAutoPosition.Location.X, checkBoxAutoPosition.Location.Y + checkBoxAutoPosition.Height);
+            checkBoxAutoMessage.Click += CheckBoxAutoMessage_Click;
             checkBoxAutoReroll.Text = "Auto reroll";
             checkBoxAutoReroll.Location = new Point(checkBoxAutoMessage.Location.X, checkBoxAutoMessage.Location.Y + checkBoxAutoMessage.Height);
+            checkBoxAutoReroll.Click += CheckBoxAutoReroll_Click;
             checkBoxAutoSkin.Text = "Auto skin";
             checkBoxAutoSkin.Location = new Point(checkBoxAutoReroll.Location.X, checkBoxAutoReroll.Location.Y + checkBoxAutoReroll.Height);
-            textBoxConversationMessage.Text = "Hello everyone";
+            checkBoxAutoSkin.Click += CheckBoxAutoSkin_Click;
+            if (textBoxConversationMessage.Text == "")
+            {
+                textBoxConversationMessage.Text = "Hello everyone";
+            }
             textBoxConversationMessage.Location = new Point(checkBoxAutoMessage.Location.X + checkBoxAutoMessage.Width, checkBoxAutoMessage.Location.Y);
+            textBoxConversationMessage.TextChanged += TextBoxConversationMessage_TextChanged;
             buttonRune.Click += buttonRune_Click;
             tooltip.AutoPopDelay = 32767;
             tooltip.UseAnimation = false;
@@ -753,6 +837,60 @@ namespace LOL_CLient_TOOL
             }
         }
 
+        private static void TextBoxConversationMessage_TextChanged(object sender, EventArgs e)
+        {
+            configData.autoMessageText = textBoxConversationMessage.Text;
+            configSaveAsync();
+        }
+
+        private static void CheckBoxAutoSkin_Click(object sender, EventArgs e)
+        {
+            configData.autoSkin = checkBoxAutoSkin.Checked;
+            configSaveAsync();
+        }
+
+        private static void CheckBoxAutoReroll_Click(object sender, EventArgs e)
+        {
+            configData.autoReroll = checkBoxAutoReroll.Checked;
+            configSaveAsync();
+        }
+
+        private static void CheckBoxAutoMessage_Click(object sender, EventArgs e)
+        {
+            configData.autoMessage = checkBoxAutoMessage.Checked;
+            configSaveAsync();
+        }
+
+        private static void CheckBoxAutoPosition_Click1(object sender, EventArgs e)
+        {
+            configData.autoRole = checkBoxAutoPosition.Checked;
+            configSaveAsync();
+        }
+
+        private static void CheckBoxAutoHonor_Click(object sender, EventArgs e)
+        {
+            configData.autoHonor = checkBoxAutoHonor.Checked;
+            configSaveAsync();
+        }
+
+        private static void CheckBoxAutoQPlayAgain_Click(object sender, EventArgs e)
+        {
+            configData.autoPlayAgain = checkBoxAutoQPlayAgain.Checked;
+            configSaveAsync();
+        }
+
+        private static void CheckBoxAutoLock_Click(object sender, EventArgs e)
+        {
+            configData.autoPick = checkBoxAutoLock.Checked;
+            configSaveAsync();
+        }
+
+        private static void CheckBoxAutoAccept_Click(object sender, EventArgs e)
+        {
+            configData.autoAccept = checkBoxAutoAccept.Checked;
+            configSaveAsync();
+        }
+
         private static void ComboBoxAutoPosition1_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (comboBoxAutoPosition1.SelectedItem != null && comboBoxAutoPosition2.SelectedItem != null)
@@ -762,6 +900,8 @@ namespace LOL_CLient_TOOL
                     comboBoxAutoPosition2.SelectedItem = position1;
                 }
                 position1 = comboBoxAutoPosition1.SelectedItem.ToString();
+                configData.autoRolePosition1 = position1;
+                configSaveAsync();
             }
         }
 
@@ -774,6 +914,8 @@ namespace LOL_CLient_TOOL
                     comboBoxAutoPosition1.SelectedItem = position2;
                 }
                 position2 = comboBoxAutoPosition2.SelectedItem.ToString();
+                configData.autoRolePosition2 = position2;
+                configSaveAsync();
             }
         }
 
@@ -1191,6 +1333,18 @@ namespace LOL_CLient_TOOL
             }
         }
 
+        public static async Task configSaveAsync()
+        {
+            string config = Newtonsoft.Json.JsonConvert.SerializeObject(configData);
+            string path = "C:\\Users\\" + Environment.UserName + "\\AppData\\Local\\LOL_Client_TOOL\\config\\";
+            Directory.CreateDirectory(path);
+            using (FileStream fs = File.Create(path + "config.json"))
+            {
+                byte[] data = new UTF8Encoding(true).GetBytes(config);
+                fs.Write(data, 0, data.Length);
+            }
+        }
+
         private async void setupLCU()//for api usage
         {
             bool success = false;
@@ -1315,10 +1469,10 @@ namespace LOL_CLient_TOOL
             this.Controls.Add(buttonRune);
             this.Controls.Add(comboBoxSummonerStatus);
             this.Controls.Add(comboBoxOwnedChampions);
-            this.Controls.Add(chechBoxAutoAccept);
-            this.Controls.Add(chechBoxAutoLock);
-            this.Controls.Add(chechBoxAutoQPlayAgain);
-            this.Controls.Add(chechBoxAutoHonor);
+            this.Controls.Add(checkBoxAutoAccept);
+            this.Controls.Add(checkBoxAutoLock);
+            this.Controls.Add(checkBoxAutoQPlayAgain);
+            this.Controls.Add(checkBoxAutoHonor);
             this.Controls.Add(checkBoxAutoPosition);
             this.Controls.Add(comboBoxAutoPosition1);
             this.Controls.Add(comboBoxAutoPosition2);
@@ -1362,20 +1516,20 @@ namespace LOL_CLient_TOOL
         {
             //Keep json for the loop START
             var lolChampSelectV1Session = new KeyValuePair<string, string>();
-            if (checkBoxAutoReroll.Checked || chechBoxAutoLock.Checked || checkBoxAutoSkin.Checked)
+            if (checkBoxAutoReroll.Checked || checkBoxAutoLock.Checked || checkBoxAutoSkin.Checked)
             {
                 lolChampSelectV1Session = LCURequest("/lol-champ-select/v1/session", "GET");
             }
             //Keep json for the loop END
             //auto accept start
-            if (chechBoxAutoAccept.Checked)
+            if (checkBoxAutoAccept.Checked)
             {
                 LCURequest("/lol-matchmaking/v1/ready-check/accept", "POST", "");
             }
             //auto accept end
 
             //Honor start
-            if (chechBoxAutoHonor.Checked)
+            if (checkBoxAutoHonor.Checked)
             {
                 //get best player for honor start
                 string tempBestSummonerId = "";
@@ -1419,7 +1573,7 @@ namespace LOL_CLient_TOOL
             //auto lock start
             string actorCellId = "";
             List<string> bans = new List<string>();
-            if (chechBoxAutoLock.Checked)
+            if (checkBoxAutoLock.Checked)
             {
                 
 
@@ -1563,7 +1717,7 @@ namespace LOL_CLient_TOOL
         {
             if (AutoQPlayAgianIntervalle == 0)
             {
-                if (chechBoxAutoQPlayAgain.Checked)
+                if (checkBoxAutoQPlayAgain.Checked)
                 {
                     JObject json = JObject.Parse(LCURequest("/lol-gameflow/v1/gameflow-metadata/player-status", "GET").Value);
                     if (json["currentLobbyStatus"]["allowedPlayAgain"].ToString().ToUpper() == "True".ToUpper())
@@ -1783,7 +1937,7 @@ namespace LOL_CLient_TOOL
 
         static async Task<bool> autoAccept()
         {
-            while (chechBoxAutoAccept.Checked)
+            while (checkBoxAutoAccept.Checked)
             {
                 var result = LCURequest("/lol-matchmaking/v1/ready-check", "GET");
                 MessageBox.Show(result.Value, result.Key);
