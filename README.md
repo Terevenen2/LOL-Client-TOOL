@@ -3,6 +3,8 @@
 
 <p align="center"><img src="https://user-images.githubusercontent.com/21199858/166827821-8f6d8d99-7247-43b8-96c1-d71ac94920e2.png" width="900"></p>
 
+### <a href='https://github.com/Terevenen2/LOL-Client-TOOL/releases/download/latest/LOL.CLient.TOOL.exe'>Download latest pre-release</a>
+
 ## Features
  - Auto lock champion
  - Auto honor allie with best KDA
