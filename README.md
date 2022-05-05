@@ -13,6 +13,7 @@
  - Auto preffered role in lobby
  - Auto reroll when possible
  - Auto skin when none selected
+ - Persitent configuration
  - Clicking on your summoner name will copy it to the clipboard
 
 ## TODO FOR V1
@@ -22,7 +23,6 @@
  - Notification when friend become active
  - Auto ban (with a list to prevent banning allie champion or trying to ban an already banned champion)
  - Auto swap champions with the bench and player wanting to trades based on a champion prioritie list
- - Persitent configuration
  - Change the design
 
 ## TODO MAYBE
