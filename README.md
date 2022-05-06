@@ -26,6 +26,7 @@
  - Auto ban (with a list to prevent banning allie champion or trying to ban an already banned champion)
  - Auto swap champions with the bench and player wanting to trades based on a champion prioritie list
  - Change the design
+ - Updater
 
 ## TODO MAYBE
  - Allow fast account swap
