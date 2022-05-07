@@ -1,9 +1,9 @@
-# LOL-Client-TOOL automate actions in the league of legends client to make life easier
+# LOL-Client-TOOL automations for league of legends client
 <p align="center"><img src="https://user-images.githubusercontent.com/21199858/166489461-f28fbae9-b620-474e-9fc6-7a58566e584b.png" width="150"></p>
 
 <p align="center"><img src="https://user-images.githubusercontent.com/21199858/166827821-8f6d8d99-7247-43b8-96c1-d71ac94920e2.png" width="900"></p>
 
-### <a href='https://github.com/Terevenen2/LOL-Client-TOOL/releases/download/latest/LOL.CLient.TOOL.exe'>Download latest pre-release</a>
+### <img src="https://discordapp.com/api/guilds/972459878809477180/widget.png?style=banner2" alt="Discord Banner 2"/>
 
 ## Features
  - Auto lock champion
@@ -32,6 +32,8 @@
  - Allow fast account swap
  - Making runes pages directly in the tool
  - Tidy the mess
+
+## To use LOL Client TOOL juste download the lastest pre-release <a href='https://github.com/Terevenen2/LOL-Client-TOOL/releases'>here</a>, expande assets and click on LOL.CLient.TOOL.exe
 
 ## Known problems to fix
  - Handle if the tool start and the client isnt runing
