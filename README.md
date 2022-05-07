@@ -3,8 +3,6 @@
 
 <p align="center"><img src="https://user-images.githubusercontent.com/21199858/166827821-8f6d8d99-7247-43b8-96c1-d71ac94920e2.png" width="900"></p>
 
-### <img src="https://discordapp.com/api/guilds/972459878809477180/widget.png?style=banner2" alt="Discord Banner 2"/>
-
 ## Features
  - Auto lock champion
  - Auto honor allie with best KDA
@@ -38,4 +36,9 @@
  - Change status to online, offline or mobile (make it realy work)
  - Play again still have issues
 
-### To use LOL Client TOOL juste download the lastest pre-release <a href='https://github.com/Terevenen2/LOL-Client-TOOL/releases'>here</a>, expande assets and click on LOL.CLient.TOOL.exe
+## How to use
+To use LOL Client TOOL juste download the lastest pre-release <a href='https://github.com/Terevenen2/LOL-Client-TOOL/releases'>here</a>, expande assets and click on LOL.CLient.TOOL.exe
+
+if you have any trouble you can join the discord to get some help
+
+<img src="https://discordapp.com/api/guilds/972459878809477180/widget.png?style=banner2" alt="Discord Banner 2"/>
