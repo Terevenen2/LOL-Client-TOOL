@@ -33,9 +33,9 @@
  - Making runes pages directly in the tool
  - Tidy the mess
 
-## To use LOL Client TOOL juste download the lastest pre-release <a href='https://github.com/Terevenen2/LOL-Client-TOOL/releases'>here</a>, expande assets and click on LOL.CLient.TOOL.exe
-
 ## Known problems to fix
  - Handle if the tool start and the client isnt runing
  - Change status to online, offline or mobile (make it realy work)
  - Play again still have issues
+
+### To use LOL Client TOOL juste download the lastest pre-release <a href='https://github.com/Terevenen2/LOL-Client-TOOL/releases'>here</a>, expande assets and click on LOL.CLient.TOOL.exe
