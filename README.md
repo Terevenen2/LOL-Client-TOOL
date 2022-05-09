@@ -17,7 +17,7 @@
  - Clicking on your summoner name will copy it to the clipboard
 
 ## TODO FOR V1
- - Advanced champions list for smart drafts handling (pick, ban, trade and gamemods bench)
+ - Advanced champions list for smart drafts handling (pick, ban, trade, runes and gamemods bench)
  - Auto summoner spells based on role, champions and allies
  - Auto runes scraped from the web
  - Notification when friend become active
