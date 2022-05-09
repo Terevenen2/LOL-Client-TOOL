@@ -20,12 +20,14 @@ namespace LOL_CLient_TOOL
     public partial class Form1 : Form
     {
         public static bool debug = false;//set true to display inputs for testing lcu requests
+        public static bool preview = false;
         public static ConfigurationData configData = new ConfigurationData();
 
         public static Dictionary<string, string> lesArguments = new Dictionary<string, string>();
         public static Dictionary<string, string> riotCredntials = new Dictionary<string, string>();
         public static Dictionary<int, string> currentSummonerTestedIcon = new Dictionary<int, string>();
         public static Dictionary<int, Point> posSubMainRune = new Dictionary<int, Point>();
+        public static SortedDictionary<string, string> champs = new SortedDictionary<string, string>();
         public static List<string> summonerIcons = new List<string>();
         public static List<string> currentSummonerOwnedIcons = new List<string>();
         public static List<string> conversationsMessageSent = new List<string>();
@@ -79,6 +81,7 @@ namespace LOL_CLient_TOOL
             public bool autoRole { get; set; }
             public string autoRolePosition1 { get; set; }
             public string autoRolePosition2 { get; set; }
+            public string autoPickChampion { get; set; }
             public bool autoMessage { get; set; }
             public string autoMessageText { get; set; }
             public bool autoReroll { get; set; }
@@ -643,37 +646,23 @@ namespace LOL_CLient_TOOL
         {
             string configPath = "C:\\Users\\" + Environment.UserName + "\\AppData\\Local\\LOL_Client_TOOL\\config\\";
             Directory.CreateDirectory(configPath);
-            bool isConfigured = false;
             JObject configuration = new JObject();
             if (File.Exists(configPath + "config.json"))
             {
-                //populate form
-                isConfigured = true;
                 string tempConf = File.ReadAllText(configPath + "config.json");
+                configData = JsonConvert.DeserializeObject<ConfigurationData>(tempConf);
+                //populate form                
                 configuration = JObject.Parse(tempConf);
                 JsonConvert.PopulateObject(tempConf, configData);
-                checkBoxAutoAccept.Checked = Convert.ToBoolean(configuration["autoAccept"].ToString());
-                configData.autoAccept = checkBoxAutoAccept.Checked;
-                checkBoxAutoLock.Checked = Convert.ToBoolean(configuration["autoPick"].ToString());
-                configData.autoPick = checkBoxAutoLock.Checked;
-                checkBoxAutoQPlayAgain.Checked = Convert.ToBoolean(configuration["autoPlayAgain"].ToString());
-                configData.autoPlayAgain = checkBoxAutoQPlayAgain.Checked;
-                checkBoxAutoHonor.Checked = Convert.ToBoolean(configuration["autoHonor"].ToString());
-                configData.autoHonor = checkBoxAutoHonor.Checked;
-                checkBoxAutoPosition.Checked = Convert.ToBoolean(configuration["autoRole"].ToString());
-                configData.autoRole = checkBoxAutoPosition.Checked;
-                comboBoxAutoPosition1.SelectedItem = configuration["autoRolePosition1"].ToString();
-                comboBoxAutoPosition2.SelectedItem = configuration["autoRolePosition2"].ToString();
-                if (comboBoxAutoPosition1.SelectedItem != null) { configData.autoRolePosition1 = comboBoxAutoPosition1.SelectedItem.ToString(); }
-                if (comboBoxAutoPosition2.SelectedItem != null) { configData.autoRolePosition2 = comboBoxAutoPosition2.SelectedItem.ToString(); }
-                checkBoxAutoMessage.Checked = Convert.ToBoolean(configuration["autoMessage"].ToString());
-                configData.autoMessage = checkBoxAutoMessage.Checked;
-                textBoxConversationMessage.Text = configuration["autoMessageText"].ToString();
-                configData.autoMessageText = textBoxConversationMessage.Text;
-                checkBoxAutoReroll.Checked = Convert.ToBoolean(configuration["autoReroll"].ToString());
-                configData.autoReroll = checkBoxAutoReroll.Checked;
-                checkBoxAutoSkin.Checked = Convert.ToBoolean(configuration["autoSkin"].ToString());
-                configData.autoSkin = checkBoxAutoSkin.Checked;
+                checkBoxAutoAccept.Checked = configData.autoAccept;
+                checkBoxAutoLock.Checked = configData.autoPick;
+                checkBoxAutoQPlayAgain.Checked = configData.autoPlayAgain;
+                checkBoxAutoHonor.Checked = configData.autoHonor;
+                checkBoxAutoPosition.Checked = configData.autoRole;
+                checkBoxAutoMessage.Checked = configData.autoMessage;
+                textBoxConversationMessage.Text = configData.autoMessageText;
+                checkBoxAutoReroll.Checked = configData.autoReroll;
+                checkBoxAutoSkin.Checked = configData.autoSkin;
             }
 
             getSummoner();
@@ -693,7 +682,15 @@ namespace LOL_CLient_TOOL
             FormSummonerRunes.Size = new Size(800, 350);
             FormSummonerRunes.Text = "Your rune pages";
 
-            labelSummonerDisplayName.Text = currentSummoner.displayName;
+            if (preview)
+            {
+                labelSummonerDisplayName.Text = "summoner name";
+            }
+            else
+            {
+                labelSummonerDisplayName.Text = currentSummoner.displayName;
+            }
+
             //labelSummonerDisplayName.Text = "summoner name";
             labelSummonerDisplayName.Location = new Point(5, 25);
             labelSummonerDisplayName.Click += LabelSummonerDisplayName_Click;
@@ -718,7 +715,7 @@ namespace LOL_CLient_TOOL
             buttonRune.Text = "RUNES";
             buttonRune.Location = new Point(labelSummonerDisplayName.Location.X + labelSummonerDisplayName.Width, labelSummonerDisplayName.Location.Y);
             comboBoxSummonerStatus.Location = new Point(buttonRune.Location.X + buttonRune.Width + 5, labelSummonerDisplayName.Location.Y + 1);
-            SortedDictionary<string, string> champs = new SortedDictionary<string, string>();
+            
             try
             {
                 var resp = JArray.Parse(LCURequest("/lol-champions/v1/owned-champions-minimal", "GET", "").Value);
@@ -728,18 +725,28 @@ namespace LOL_CLient_TOOL
                     if (champ["ownership"]["owned"].ToString() == "True")
                     {
                         champs.Add(champ["name"].ToString(), champ["id"].ToString());
+                        comboBoxOwnedChampions.Items.Add(champ["name"].ToString());
                         //MessageBox.Show(champ["id"].ToString() + " " + champ["name"].ToString());
                     }
                 }
-                comboBoxOwnedChampions.DataSource = new BindingSource(champs, null);
             }
             catch (Exception ex) { }
-            comboBoxOwnedChampions.DisplayMember = "Key";
-            comboBoxOwnedChampions.ValueMember = "Value";
-            comboBoxOwnedChampions.ValueMember = "0";
             comboBoxOwnedChampions.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBoxOwnedChampions.Location = new Point(comboBoxSummonerStatus.Location.X + comboBoxSummonerStatus.Width + 5, comboBoxSummonerStatus.Location.Y);
-            comboBoxOwnedChampions.SelectedValueChanged += ComboBoxOwnedChampions_SelectedValueChanged;
+            comboBoxOwnedChampions.SelectedIndexChanged += ComboBoxOwnedChampions_SelectedIndexChanged;
+            comboBoxOwnedChampions.Sorted = true;
+            var selelctedItem = comboBoxOwnedChampions.SelectedItem;
+            if (configData.autoPickChampion != null)
+            {
+                foreach (var cha in champs)
+                {
+                    if (cha.Key.Contains(configData.autoPickChampion))
+                    {
+                        instaLockChampId = cha.Value;
+                    }
+                }
+                comboBoxOwnedChampions.SelectedItem = configData.autoPickChampion;
+            }
             checkBoxAutoAccept.Text = "Auto accept";
             checkBoxAutoAccept.TextAlign = ContentAlignment.MiddleLeft;
             checkBoxAutoAccept.Location = new Point(comboBoxOwnedChampions.Location.X + comboBoxOwnedChampions.Width + 5, comboBoxOwnedChampions.Location.Y);
@@ -767,10 +774,18 @@ namespace LOL_CLient_TOOL
             comboBoxAutoPosition2.Width = 70;
             foreach (string str in postions) { comboBoxAutoPosition1.Items.Add(str); }
             foreach (string str in postions) { comboBoxAutoPosition2.Items.Add(str); }
+            if (configData.autoRolePosition1 != null)
+            {
+                comboBoxAutoPosition1.SelectedItem = configData.autoRolePosition1;
+            }
+            else { comboBoxAutoPosition1.SelectedItem = postions[0]; }
+            if (configData.autoRolePosition2 != null)
+            {
+                comboBoxAutoPosition2.SelectedItem = configData.autoRolePosition2;
+            }
+            else { comboBoxAutoPosition2.SelectedItem = postions[1]; }
             comboBoxAutoPosition1.SelectedIndexChanged += ComboBoxAutoPosition1_SelectedIndexChanged;
             comboBoxAutoPosition2.SelectedIndexChanged += ComboBoxAutoPosition2_SelectedIndexChanged;
-            comboBoxAutoPosition1.SelectedItem = postions[0];
-            comboBoxAutoPosition2.SelectedItem = postions[1];
             comboBoxAutoPosition1.Location = new Point(checkBoxAutoPosition.Location.X + checkBoxAutoPosition.Width + 5, checkBoxAutoPosition.Location.Y);
             comboBoxAutoPosition2.Location = new Point(comboBoxAutoPosition1.Location.X + comboBoxAutoPosition1.Width + 5, checkBoxAutoPosition.Location.Y);
             checkBoxAutoMessage.Text = "Auto message";
@@ -835,6 +850,20 @@ namespace LOL_CLient_TOOL
                 comboBoxSummonerStatus.Enabled = true;
                 comboBoxOwnedChampions.Enabled = true;
             }
+        }
+
+        private static void ComboBoxOwnedChampions_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            foreach (var cha in champs)
+            {
+                if (cha.Value == comboBoxOwnedChampions.SelectedItem)
+                {
+                    instaLockChampId = cha.Key;
+                }
+            }
+
+            configData.autoPickChampion = comboBoxOwnedChampions.SelectedItem.ToString();
+            configSaveAsync();
         }
 
         private static void TextBoxConversationMessage_TextChanged(object sender, EventArgs e)
@@ -924,10 +953,6 @@ namespace LOL_CLient_TOOL
             throw new NotImplementedException();
         }
 
-        private static void ComboBoxOwnedChampions_SelectedValueChanged(object sender, EventArgs e)
-        {
-            instaLockChampId = Regex.Replace(comboBoxOwnedChampions.SelectedValue.ToString(), @"[^\d]", "");
-        }
 
         private static void ComboBoxSummonerStatus_SelectedIndexChanged(object sender, EventArgs e)
         {
