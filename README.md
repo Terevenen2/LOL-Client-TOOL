@@ -22,6 +22,7 @@
  - Auto summoner spells based on role, champions and allies
  - Auto runes scraped from the web
  - Notification when friend become active
+ - App tray icon
  - Auto ban (with a list to prevent banning allie champion or trying to ban an already banned champion)
  - Auto swap champions with the bench and player wanting to trades based on a champion prioritie list
  - Change the design
