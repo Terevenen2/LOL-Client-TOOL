@@ -14,6 +14,7 @@
  - Auto reroll when possible
  - Auto skin when none selected
  - Persitent configuration
+ - Add the app to the tray
  - Clicking on your summoner name will copy it to the clipboard
 
 ## TODO FOR V1
