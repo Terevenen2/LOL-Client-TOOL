@@ -54,7 +54,7 @@ namespace LOL_CLient_TOOL
         public static bool processingAllIcon = false;
         public static bool formSummonerRuneIsSetup = false;
         public static bool instalockIsEnabled = false;
-        public static bool formSetupFaild = false;
+        public static bool formSetupFaild =true;
         
         public string ClientReadyCheckState
         {
@@ -1372,70 +1372,75 @@ namespace LOL_CLient_TOOL
 
         private async void setupLCU()//for api usage
         {
+            bool setupFaild = true;
             bool success = false;
-            try
+            while (setupFaild)
             {
-                System.Diagnostics.ProcessStartInfo usbDevicesInfo = new System.Diagnostics.ProcessStartInfo("wmic", "PROCESS WHERE name='LeagueClientUx.exe' GET commandline");
-                usbDevicesInfo.RedirectStandardOutput = true;
-                usbDevicesInfo.UseShellExecute = false;
-                usbDevicesInfo.CreateNoWindow = true;
-                System.Diagnostics.Process process = new System.Diagnostics.Process();
-                process.StartInfo = usbDevicesInfo;
-                process.Start();
-                process.WaitForExit();
-                Console.WriteLine("ExitCode: " + process.ExitCode.ToString() + "\n");
-                string result = process.StandardOutput.ReadToEnd();
-                string[] lesArgumentsTemp = result.Split(new[] { "\" \"" }, StringSplitOptions.None);
-                foreach (string argument in lesArgumentsTemp)
+                try
                 {
-                    string arg = argument.Replace("\"", "");
-                    if (arg.Contains("="))
+                    System.Diagnostics.ProcessStartInfo usbDevicesInfo = new System.Diagnostics.ProcessStartInfo("wmic", "PROCESS WHERE name='LeagueClientUx.exe' GET commandline");
+                    usbDevicesInfo.RedirectStandardOutput = true;
+                    usbDevicesInfo.UseShellExecute = false;
+                    usbDevicesInfo.CreateNoWindow = true;
+                    System.Diagnostics.Process process = new System.Diagnostics.Process();
+                    process.StartInfo = usbDevicesInfo;
+                    process.Start();
+                    process.WaitForExit();
+                    Console.WriteLine("ExitCode: " + process.ExitCode.ToString() + "\n");
+                    string result = process.StandardOutput.ReadToEnd();
+                    string[] lesArgumentsTemp = result.Split(new[] { "\" \"" }, StringSplitOptions.None);
+                    foreach (string argument in lesArgumentsTemp)
                     {
-                        string[] kv = arg.Split(Convert.ToChar("="));
-                        lesArguments.Add(kv[0], kv[1]);
+                        string arg = argument.Replace("\"", "");
+                        if (arg.Contains("="))
+                        {
+                            string[] kv = arg.Split(Convert.ToChar("="));
+                            lesArguments.Add(kv[0], kv[1]);
+                        }
                     }
+                    byte[] data = System.Text.ASCIIEncoding.ASCII.GetBytes("riot:" + lesArguments["--remoting-auth-token"]);
+                    autorization = Convert.ToBase64String(data);
+                    string laData = "PASSWORD: " + lesArguments["--remoting-auth-token"] + "\r\n" + "PORT: " + lesArguments["--app-port"] + "\r\n" + "AUTH: " + autorization;
+                    port = lesArguments["--app-port"];
+                    lesArguments.Clear();
+                    setupFaild = false;
                 }
-                byte[] data = System.Text.ASCIIEncoding.ASCII.GetBytes("riot:" + lesArguments["--remoting-auth-token"]);
-                autorization = Convert.ToBase64String(data);
-                string laData = "PASSWORD: " + lesArguments["--remoting-auth-token"] + "\r\n" + "PORT: " + lesArguments["--app-port"] + "\r\n" + "AUTH: " + autorization;
-                port = lesArguments["--app-port"];
-                lesArguments.Clear();
-                success = true;
-            }
-            catch (Exception ex)
-            {
-                //try connection to riot client
-                //MessageBox.Show(ex.Message);
-                ProcessStartInfo usbDevicesInfo = new ProcessStartInfo("wmic", "PROCESS WHERE name='RiotClientUx.exe' GET commandline");
-                usbDevicesInfo.RedirectStandardOutput = true;
-                usbDevicesInfo.UseShellExecute = false;
-                usbDevicesInfo.CreateNoWindow = true;
-                Process process = new Process();
-                process.StartInfo = usbDevicesInfo;
-                process.Start();
-                process.WaitForExit();
-                
-                string result = process.StandardOutput.ReadToEnd();
-                string[] lesArgumentsTemp = result.Split(' ');
-                foreach (string argument in lesArgumentsTemp)
+                catch (Exception ex)
                 {
-                    string arg = argument.Replace("\"", "");
-                    if (arg.Contains("="))
-                    {
-                        string[] kv = arg.Split(Convert.ToChar("="));
-                        lesArguments.Add(kv[0], kv[1]);
-                    }
-                }
-                byte[] data = System.Text.ASCIIEncoding.ASCII.GetBytes("riot:" + lesArguments["--remoting-auth-token"]);
-                autorizationRiotClient = Convert.ToBase64String(data);
-                string laData = "PASSWORD: " + lesArguments["--remoting-auth-token"] + "\r\n" + "PORT: " + lesArguments["--app-port"] + "\r\n" + "AUTH: " + autorizationRiotClient;
-                portRiotClient = lesArguments["--app-port"];
-                lesArguments.Clear();
+                    //try connection to riot client
+                    //MessageBox.Show(ex.Message);
+                    //ProcessStartInfo usbDevicesInfo = new ProcessStartInfo("wmic", "PROCESS WHERE name='RiotClientUx.exe' GET commandline");
+                    //usbDevicesInfo.RedirectStandardOutput = true;
+                    //usbDevicesInfo.UseShellExecute = false;
+                    //usbDevicesInfo.CreateNoWindow = true;
+                    //Process process = new Process();
+                    //process.StartInfo = usbDevicesInfo;
+                    //process.Start();
+                    //process.WaitForExit();
 
-                
-                //string json = "{'username': " +  + "}";
-                //RiotLCURequest("https://127.0.0.1:" + portRiotClient + "/rso-auth/v1/session/credentials", "PUT", );
+                    //string result = process.StandardOutput.ReadToEnd();
+                    //string[] lesArgumentsTemp = result.Split(' ');
+                    //foreach (string argument in lesArgumentsTemp)
+                    //{
+                    //    string arg = argument.Replace("\"", "");
+                    //    if (arg.Contains("="))
+                    //    {
+                    //        string[] kv = arg.Split(Convert.ToChar("="));
+                    //        lesArguments.Add(kv[0], kv[1]);
+                    //    }
+                    //}
+                    //byte[] data = System.Text.ASCIIEncoding.ASCII.GetBytes("riot:" + lesArguments["--remoting-auth-token"]);
+                    //autorizationRiotClient = Convert.ToBase64String(data);
+                    //string laData = "PASSWORD: " + lesArguments["--remoting-auth-token"] + "\r\n" + "PORT: " + lesArguments["--app-port"] + "\r\n" + "AUTH: " + autorizationRiotClient;
+                    //portRiotClient = lesArguments["--app-port"];
+                    //lesArguments.Clear();
+
+
+                    //string json = "{'username': " +  + "}";
+                    //RiotLCURequest("https://127.0.0.1:" + portRiotClient + "/rso-auth/v1/session/credentials", "PUT", );
+                }
             }
+            
         }
 
         private async void Form1_Load(object sender, EventArgs e)
@@ -1460,34 +1465,34 @@ namespace LOL_CLient_TOOL
 
 
             setupForm();
-            if (formSetupFaild)
-            {
-                //ID
-                Label labelId = new Label();
-                labelId.Text = "Login id :";
-                labelId.Location = new Point(5, 5);
-                textBoxId.Location = new Point(labelId.Location.X + labelId.Width, labelId.Location.Y);
-                //PASSWORD
-                Label labelPassword = new Label();
-                labelPassword.Text = "Password :";
-                labelPassword.Location = new Point(5, 5 + labelId.Height);
-                textBoxPassword.Location = new Point(labelPassword.Location.X + labelPassword.Width, labelPassword.Location.Y);
-                //LOGIN BUTTON
-                Button buttonLogin = new Button();
-                buttonLogin.Text = "LOGIN";
-                buttonLogin.Width = labelId.Width + textBoxId.Width;
-                buttonLogin.Location = new Point(5, 5 + labelPassword.Height + buttonLogin.Height);
-                buttonLogin.Click += ButtonLogin_Click;
-                //POPULATING FORM
-                formLogin.Controls.Add(textBoxId);
-                formLogin.Controls.Add(labelId);
-                formLogin.Controls.Add(labelPassword);
-                formLogin.Controls.Add(textBoxPassword);
-                formLogin.Controls.Add(buttonLogin);
-                formLogin.Show();
-                buttonSetupFrom.Click += ButtonSetupFrom_Click;
-                this.Controls.Add(buttonSetupFrom);
-            }
+            //if (formSetupFaild)
+            //{
+            //    //ID
+            //    Label labelId = new Label();
+            //    labelId.Text = "Login id :";
+            //    labelId.Location = new Point(5, 5);
+            //    textBoxId.Location = new Point(labelId.Location.X + labelId.Width, labelId.Location.Y);
+            //    //PASSWORD
+            //    Label labelPassword = new Label();
+            //    labelPassword.Text = "Password :";
+            //    labelPassword.Location = new Point(5, 5 + labelId.Height);
+            //    textBoxPassword.Location = new Point(labelPassword.Location.X + labelPassword.Width, labelPassword.Location.Y);
+            //    //LOGIN BUTTON
+            //    Button buttonLogin = new Button();
+            //    buttonLogin.Text = "LOGIN";
+            //    buttonLogin.Width = labelId.Width + textBoxId.Width;
+            //    buttonLogin.Location = new Point(5, 5 + labelPassword.Height + buttonLogin.Height);
+            //    buttonLogin.Click += ButtonLogin_Click;
+            //    //POPULATING FORM
+            //    formLogin.Controls.Add(textBoxId);
+            //    formLogin.Controls.Add(labelId);
+            //    formLogin.Controls.Add(labelPassword);
+            //    formLogin.Controls.Add(textBoxPassword);
+            //    formLogin.Controls.Add(buttonLogin);
+            //    formLogin.Show();
+            //    buttonSetupFrom.Click += ButtonSetupFrom_Click;
+            //    this.Controls.Add(buttonSetupFrom);
+            //}
             //disabled until there is a good way to get summonner owned icons
             //summonerIcon.Click += new EventHandler(summonerIcon_Click);
             this.Controls.Add(summonerIcon);
@@ -1903,37 +1908,42 @@ namespace LOL_CLient_TOOL
 
         public static void getSummoner()
         {
-            try
+            while (formSetupFaild)
             {
-                JObject summoner = JObject.Parse(LCURequest("/lol-summoner/v1/current-summoner", "GET", "").Value);
-                currentSummoner.accountId = (string)summoner["accountId"];
-                currentSummoner.displayName = (string)summoner["displayName"];
-                currentSummoner.internalName = (string)summoner["internalName"];
-                currentSummoner.nameChangeFlag = (string)summoner["nameChangeFlag"];
-                currentSummoner.percentCompleteForNextLevel = (string)summoner["percentCompleteForNextLevel"];
-                if (currentSummoner.profileIconId != (string)summoner["profileIconId"])
+                try
                 {
-                    summonerIcon.Image = getIcon((string)summoner["profileIconId"]).Image;
-                    summonerIcon.Update();
-                    summonerIcon.Refresh();
+                    JObject summoner = JObject.Parse(LCURequest("/lol-summoner/v1/current-summoner", "GET", "").Value);
+                    currentSummoner.accountId = (string)summoner["accountId"];
+                    currentSummoner.displayName = (string)summoner["displayName"];
+                    currentSummoner.internalName = (string)summoner["internalName"];
+                    currentSummoner.nameChangeFlag = (string)summoner["nameChangeFlag"];
+                    currentSummoner.percentCompleteForNextLevel = (string)summoner["percentCompleteForNextLevel"];
+                    if (currentSummoner.profileIconId != (string)summoner["profileIconId"])
+                    {
+                        summonerIcon.Image = getIcon((string)summoner["profileIconId"]).Image;
+                        summonerIcon.Update();
+                        summonerIcon.Refresh();
+                    }
+                    currentSummoner.profileIconId = (string)summoner["profileIconId"];
+                    currentSummoner.puuid = (string)summoner["puuid"];
+                    currentSummoner.summonerId = (string)summoner["summonerId"];
+                    currentSummoner.summonerLevel = (string)summoner["summonerLevel"];
+                    currentSummoner.unnamed = (string)summoner["unnamed"];
+                    currentSummoner.xpSinceLastLevel = (string)summoner["xpSinceLastLevel"];
+                    currentSummoner.xpUntilNextLevel = (string)summoner["xpUntilNextLevel"];
+                    currentSummonerRerollPoints.currentPoints = (string)summoner["rerollPoints"]["currentPoints"];
+                    currentSummonerRerollPoints.maxRolls = (string)summoner["rerollPoints"]["maxRolls"];
+                    currentSummonerRerollPoints.numberOfRolls = (string)summoner["rerollPoints"]["numberOfRolls"];
+                    currentSummonerRerollPoints.pointsCostToRoll = (string)summoner["rerollPoints"]["pointsCostToRoll"];
+                    currentSummonerRerollPoints.pointsToReroll = (string)summoner["rerollPoints"]["pointsCostToReroll"];
+                    formSetupFaild = false;
                 }
-                currentSummoner.profileIconId = (string)summoner["profileIconId"];
-                currentSummoner.puuid = (string)summoner["puuid"];
-                currentSummoner.summonerId = (string)summoner["summonerId"];
-                currentSummoner.summonerLevel = (string)summoner["summonerLevel"];
-                currentSummoner.unnamed = (string)summoner["unnamed"];
-                currentSummoner.xpSinceLastLevel = (string)summoner["xpSinceLastLevel"];
-                currentSummoner.xpUntilNextLevel = (string)summoner["xpUntilNextLevel"];
-                currentSummonerRerollPoints.currentPoints = (string)summoner["rerollPoints"]["currentPoints"];
-                currentSummonerRerollPoints.maxRolls = (string)summoner["rerollPoints"]["maxRolls"];
-                currentSummonerRerollPoints.numberOfRolls = (string)summoner["rerollPoints"]["numberOfRolls"];
-                currentSummonerRerollPoints.pointsCostToRoll = (string)summoner["rerollPoints"]["pointsCostToRoll"];
-                currentSummonerRerollPoints.pointsToReroll = (string)summoner["rerollPoints"]["pointsCostToReroll"];
+                catch (Exception ex)
+                {
+                    formSetupFaild = true;
+                }
             }
-            catch (Exception ex) 
-            {
-                formSetupFaild = true;
-            }
+
         }
 
         public static void getVersion()
