@@ -1496,7 +1496,7 @@ namespace LOL_CLient_TOOL
             //disabled until there is a good way to get summonner owned icons
             //summonerIcon.Click += new EventHandler(summonerIcon_Click);
             this.Controls.Add(summonerIcon);
-            this.Controls.Add(buttonRune);
+            //this.Controls.Add(buttonRune);
             this.Controls.Add(comboBoxSummonerStatus);
             this.Controls.Add(comboBoxOwnedChampions);
             this.Controls.Add(checkBoxAutoAccept);
@@ -1943,7 +1943,6 @@ namespace LOL_CLient_TOOL
                     formSetupFaild = true;
                 }
             }
-
         }
 
         public static void getVersion()
