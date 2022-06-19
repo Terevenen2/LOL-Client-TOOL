@@ -44,5 +44,6 @@ To use LOL Client TOOL juste download the lastest pre-release <a href='https://g
 if you have any trouble, want to ask for a feature or report a bug you can join the discord
 
 <a href='https://discord.gg/nC6xcQrQHA'><img src="https://discordapp.com/api/guilds/972459878809477180/widget.png?style=banner2" alt="Discord Banner 2"/></a>
+   
  
- 
+  
