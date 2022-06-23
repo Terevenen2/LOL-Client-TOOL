@@ -54,8 +54,8 @@ namespace LOL_CLient_TOOL
         public static bool processingAllIcon = false;
         public static bool formSummonerRuneIsSetup = false;
         public static bool instalockIsEnabled = false;
-        public static bool formSetupFaild =true;
-        
+        public static bool formSetupFaild = true;
+
         public string ClientReadyCheckState
         {
             get { return _clientReadyCheckState; }
@@ -71,6 +71,7 @@ namespace LOL_CLient_TOOL
         public static string _clientReadyCheckState;
 
         public static List<leagueRune> leagueOfLegendsRunes = new List<leagueRune>();
+        public static List<champion> leagueOfLegendsChampions = new List<champion>();
 
         public class ConfigurationData
         {
@@ -123,7 +124,7 @@ namespace LOL_CLient_TOOL
         }
         public class SummonerRunes
         {
-            public Dictionary<int, RunePage> RunePages  { get; set; }
+            public Dictionary<int, RunePage> RunePages { get; set; }
         }
 
         public class Rune
@@ -145,8 +146,72 @@ namespace LOL_CLient_TOOL
             public Dictionary<int, Dictionary<int, Rune>> slots { get; set; }
         }
 
+        public class champion
+        {
+            public string name { get; set; }
+            public string version { get; set; }
+            public string id { get; set; }
+            public string key { get; set; }
+            public string title { get; set; }
+            public string blurb { get; set; }
+            public info info { get; set; }
+            public image image { get; set; }
+            public List<string> tags { get; set; }
+            public string partype { get; set; }
+            public stats stats { get; set; }
+        }
 
-        public class ComboBoxIdName
+        public class info
+        {
+            public string attack { get; set; }
+            public string defense { get; set; }
+            public string magic { get; set; }
+            public string difficulty { get; set; }
+        }
+
+        public class image
+        {
+            public string full { get; set; }
+            public string sprite { get; set; }
+            public string group { get; set; }
+            public string x { get; set; }
+            public string y { get; set; }
+            public string w { get; set; }
+            public string h { get; set; }
+        }
+
+        public class tags
+        {
+            public string tag1 { get; set; }
+            public string tag2 { get; set; }
+        }
+        
+        public class stats {
+            public string hp { get; set; }
+            public string hpperlevel { get; set; }
+            public string mp { get; set; }
+            public string mpperlevel { get; set; }
+            public string movespeed { get; set; }
+            public string armor { get; set; }
+            public string armorperlevel { get; set; }
+            public string spellblock { get; set; }
+            public string spellblockperlevel { get; set; }
+            public string attackrange { get; set; }
+            public string hpregen { get; set; }
+            public string hpregenperlevel { get; set; }
+            public string mpregen { get; set; }
+            public string mpregenperlevel { get; set; }
+            public string crit { get; set; }
+            public string critperlevel { get; set; }
+            public string attackdamage { get; set; }
+            public string attackdamageperlevel { get; set; }
+            public string attackspeedoffset { get; set; }
+            public string attackspeedperlevel { get; set; }
+            public string attackdamageperleveloffset { get; set; }
+        }
+
+
+            public class ComboBoxIdName
         {
             public int Id { get; set; }
             public string Name { get; set; }
@@ -205,6 +270,7 @@ namespace LOL_CLient_TOOL
         public static CheckBox verifyOwnedIcons = new CheckBox();
         public static CheckBox checkBoxAutoAccept = new CheckBox();
         public static CheckBox checkBoxAutoLock = new CheckBox();
+        public static CheckBox checkBoxAutoBan = new CheckBox();
         public static CheckBox checkBoxAutoQPlayAgain = new CheckBox();
         public static CheckBox checkBoxAutoHonor = new CheckBox();
         public static CheckBox checkBoxAutoPosition = new CheckBox();
@@ -303,7 +369,7 @@ namespace LOL_CLient_TOOL
         {
             string fileName1 = "ownedIcons" + currentSummoner.summonerId + ".txt";
             string path = "C:\\Users\\" + Environment.UserName + "\\AppData\\Local\\LOL_Client_TOOL\\icon\\";
-            string lesIconJson = DDragonRequest("http://ddragon.leagueoflegends.com/cdn/" + version + "/data/en_US/profileicon.json");
+            string lesIconJson = DDragonRequest("/data/en_US/profileicon.json");
             var icons = JObject.Parse(lesIconJson);
             if (!File.Exists(path + fileName1))
             {
@@ -369,7 +435,7 @@ namespace LOL_CLient_TOOL
             if (formSummonerIconLoadComplete == false)
             {
                 formSummonerIconLoadComplete = true;
-                string lesIconJson = DDragonRequest("http://ddragon.leagueoflegends.com/cdn/" + version + "/data/en_US/profileicon.json");
+                string lesIconJson = DDragonRequest("/data/en_US/profileicon.json");
                 var icons = JObject.Parse(lesIconJson);
                 Dictionary<int, string> lesIcon = new Dictionary<int, string>();
                 foreach (var icon in icons["data"])
@@ -554,7 +620,7 @@ namespace LOL_CLient_TOOL
                 {
                     Directory.CreateDirectory(path);
                 }
-                string str = DDragonRequest("https://ddragon.leagueoflegends.com/cdn/" + version + "/data/" + lang + "/runesReforged.json");
+                string str = DDragonRequest("/data/" + lang + "/runesReforged.json");
                 using (StreamWriter sw = File.CreateText(path + fileName)) { }
 
                 File.AppendAllText(path + fileName, str);
@@ -644,6 +710,10 @@ namespace LOL_CLient_TOOL
 
         private static void setupForm()
         {
+            //getting language
+            var regionAndLanguage = JObject.Parse(LCURequest("/riotclient/get_region_locale", "GET").Value);
+            lang = regionAndLanguage["locale"].ToString();
+            
             string configPath = "C:\\Users\\" + Environment.UserName + "\\AppData\\Local\\LOL_Client_TOOL\\config\\";
             Directory.CreateDirectory(configPath);
             JObject configuration = new JObject();
@@ -665,6 +735,19 @@ namespace LOL_CLient_TOOL
                 checkBoxAutoSkin.Checked = configData.autoSkin;
             }
 
+
+            //getting all champions
+            string tempJsonChamp = DDragonRequest("/data/" + lang + "/champion.json");
+            JObject championsJson = JObject.Parse(tempJsonChamp);
+
+            foreach (var champData in championsJson["data"].Values())
+            {
+                string lestring = champData.ToString();
+                champion lechamp = JsonConvert.DeserializeObject<champion>(lestring);
+                leagueOfLegendsChampions.Add(lechamp);
+            }
+
+            //leagueOfLegendsChampions = ;
             getSummoner();
             runeSetup();
             mainFormMenu.BackColor = Color.Gray;
@@ -1603,6 +1686,7 @@ namespace LOL_CLient_TOOL
             //auto lock start
             string actorCellId = "";
             List<string> bans = new List<string>();
+            //if (checkBoxAutoLock.Checked || checkBoxAutoBan.Checked)
             if (checkBoxAutoLock.Checked)
             {
                 
@@ -1634,11 +1718,16 @@ namespace LOL_CLient_TOOL
                             if (team["actorCellId"].ToString() == actorCellId)
                             {
                                 string isInProgrss = team["isInProgress"].ToString();
-                                if (isInProgrss == "True" && team["type"].ToString().Contains("pick") && !bans.Contains(instaLockChampId))
+                                if (isInProgrss == "True" && team["type"].ToString().Contains("pick") && !bans.Contains(instaLockChampId) && checkBoxAutoLock.Checked)
                                 {
                                     string jsonDataForLock = "{  \"actorCellId\": " + actorCellId + ",  \"championId\": " + instaLockChampId + ",  \"completed\": true,  \"id\": " + team["id"].ToString() + ",  \"isAllyAction\": true,  \"type\": \"string\"}";
                                     var resp = LCURequest("/lol-champ-select/v1/session/actions/" + team["id"].ToString(), "PATCH", jsonDataForLock);
                                 }
+                                //if (isInProgrss == "True" && team["type"].ToString().Contains("ban") && !bans.Contains(instaLockChampId) && checkBoxAutoBan.Checked)
+                                //{
+                                //    string jsonDataForLock = "{  \"actorCellId\": " + actorCellId + ",  \"championId\": " + instaLockChampId + ",  \"completed\": true,  \"id\": " + team["id"].ToString() + ",  \"isAllyAction\": true,  \"type\": \"string\"}";
+                                //    var resp = LCURequest("/lol-champ-select/v1/session/actions/" + team["id"].ToString(), "PATCH", jsonDataForLock);
+                                //}
                             }
                         }
                     }
@@ -1872,6 +1961,11 @@ namespace LOL_CLient_TOOL
 
         private static string DDragonRequest(string url = "", string json = "")
         {
+            if (!url.Contains("version"))
+            {
+                url = "https://ddragon.leagueoflegends.com/cdn/" + version + url;
+            }
+            
             HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create(url);
             httpWebRequest.ContentType = "application/json";
             httpWebRequest.Method = "GET";
