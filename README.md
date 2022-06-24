@@ -20,6 +20,7 @@
  - Advanced champions list for smart drafts handling (pick, ban, trade, runes, summoners spell and gamemods bench)
  - Auto summoner spells based on role, champions and allies
  - Auto runes scraped from the web
+ - Pre-Pick when possible
  - Notification when friend become active
  - App tray icon
  - Auto ban (with a list to prevent banning allie champion or trying to ban an already banned champion)
