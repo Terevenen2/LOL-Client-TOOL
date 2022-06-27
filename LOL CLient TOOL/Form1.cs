@@ -185,8 +185,9 @@ namespace LOL_CLient_TOOL
             public string tag1 { get; set; }
             public string tag2 { get; set; }
         }
-        
-        public class stats {
+
+        public class stats
+        {
             public string hp { get; set; }
             public string hpperlevel { get; set; }
             public string mp { get; set; }
@@ -211,7 +212,7 @@ namespace LOL_CLient_TOOL
         }
 
 
-            public class ComboBoxIdName
+        public class ComboBoxIdName
         {
             public int Id { get; set; }
             public string Name { get; set; }
@@ -252,6 +253,7 @@ namespace LOL_CLient_TOOL
         public static Form FormSummonerRunes = new Form();
         public static Form FormChampSelect = new Form();
         public static Form formLogin = new Form();
+        public static Form formChampions = new Form();
 
         public static ComboBox comboBoxRunesPages = new ComboBox();
         public static ComboBox comboBoxSummonerStatus = new ComboBox();
@@ -289,6 +291,8 @@ namespace LOL_CLient_TOOL
         public static Button apiEndpointCall = new Button();
         public static Button buttonRune = new Button();
         public static Button buttonSetupFrom = new Button();
+        public static Button buttonChampions = new Button();
+
 
         public static List<PictureBox> allSummonerIcons = new List<PictureBox>();
         public static PictureBox summonerIcon = new PictureBox();
@@ -319,7 +323,7 @@ namespace LOL_CLient_TOOL
             DirectoryInfo di = Directory.CreateDirectory(path);
             myEncoderParameters.Param[0] = myEncoderParameter;
             uneImage.Image.Save(path + leNom, myImageCodecInfo, myEncoderParameters);
-            
+
         }
 
         public async void summonerIcon_Click(object sender, EventArgs e)
@@ -338,12 +342,12 @@ namespace LOL_CLient_TOOL
             foreach (PictureBox icon in allSummonerIcons)
             {
                 int count = 0;
-                foreach(PictureBox ico in allSummonerIcons)
+                foreach (PictureBox ico in allSummonerIcons)
                 {
-                    if(icon.Name == ico.Name)
+                    if (icon.Name == ico.Name)
                     {
                         count++;
-                        if(count == 2)
+                        if (count == 2)
                         {
                             allSummonerIcons.Remove(ico);
                             break;
@@ -389,18 +393,18 @@ namespace LOL_CLient_TOOL
                 string[] uneIcon = icon.ToString().Split(new[] { "id" }, StringSplitOptions.None);
                 string icco = Regex.Replace(uneIcon[0], @"[^\d]", "");
                 lesIcon.Add(lesIcon.Count, icco);
-                if(last == icco)
+                if (last == icco)
                 {
                     lastId = lesIcon.Count.ToString();
                 }
             }
-            if(lastId == "") { lastId = "-1"; }
-            foreach(KeyValuePair<int, string> ico in lesIcon)
+            if (lastId == "") { lastId = "-1"; }
+            foreach (KeyValuePair<int, string> ico in lesIcon)
             {
                 if (ico.Key > Convert.ToInt32(lastId))
                 {
                     string resp = LCURequest("/lol-summoner/v1/current-summoner/icon", "PUT", "{ \"profileIconId\" : \"" + ico.Value + "\"}").Value;
-                    if(resp.Contains(currentSummoner.displayName) || resp.Contains("(429) Bad Request"))
+                    if (resp.Contains(currentSummoner.displayName) || resp.Contains("(429) Bad Request"))
                     {
                         while (resp.Contains("(429) Bad Request"))
                         {
@@ -472,7 +476,7 @@ namespace LOL_CLient_TOOL
                         }
                     }
                 }
-                
+
                 if (verifyOwnedIcons.Checked)
                 {
                     allSummonerIcons.Clear();
@@ -493,7 +497,7 @@ namespace LOL_CLient_TOOL
                             ownedIcons = ownedIcons.Distinct().ToArray();
                             lastIcon = ownedIcons.Last();
                         }
-                        
+
 
                         if (oneTime == false)
                         {
@@ -690,7 +694,7 @@ namespace LOL_CLient_TOOL
         {
             downloadedRunes++;
             buttonRune.Text = "LOAD: " + downloadedRunes + "/" + downloadingRunes;
-            if(downloadedRunes == downloadingRunes)
+            if (downloadedRunes == downloadingRunes)
             {
                 buttonRune.Enabled = true;
                 buttonRune.Text = "RUNES";
@@ -713,7 +717,7 @@ namespace LOL_CLient_TOOL
             //getting language
             var regionAndLanguage = JObject.Parse(LCURequest("/riotclient/get_region_locale", "GET").Value);
             lang = regionAndLanguage["locale"].ToString();
-            
+
             string configPath = "C:\\Users\\" + Environment.UserName + "\\AppData\\Local\\LOL_Client_TOOL\\config\\";
             Directory.CreateDirectory(configPath);
             JObject configuration = new JObject();
@@ -752,8 +756,8 @@ namespace LOL_CLient_TOOL
             runeSetup();
             mainFormMenu.BackColor = Color.Gray;
             string[] menuOption = new string[] { "File", "View" };
-            string[] menuFileText = new string[] {"Open LOL Client TOOL data Folder"};
-            foreach(string str in menuOption)
+            string[] menuFileText = new string[] { "Open LOL Client TOOL data Folder" };
+            foreach (string str in menuOption)
             {
                 mainFormMenu.Items.Add(str);
             }
@@ -777,14 +781,21 @@ namespace LOL_CLient_TOOL
             //labelSummonerDisplayName.Text = "summoner name";
             labelSummonerDisplayName.Location = new Point(5, 25);
             labelSummonerDisplayName.Click += LabelSummonerDisplayName_Click;
-            summonerStatus.Add(new ComboBoxIdName {Id = 0,Name = "online".ToUpper() });
+
+            buttonChampions.Location = new Point(labelSummonerDisplayName.Location.X + labelSummonerDisplayName.Width + 5, labelSummonerDisplayName.Location.Y);
+            buttonChampions.Text = "champions";
+            buttonChampions.Click += ButtonChampions_Click;
+
+            formChampions.FormClosing += FormChampions_FormClosing;
+
+            summonerStatus.Add(new ComboBoxIdName { Id = 0, Name = "online".ToUpper() });
             summonerStatus.Add(new ComboBoxIdName { Id = 1, Name = "away".ToUpper() });
             summonerStatus.Add(new ComboBoxIdName { Id = 2, Name = "mobile".ToUpper() });
             summonerStatus.Add(new ComboBoxIdName { Id = 3, Name = "offline".ToUpper() });
             int len = 0;
-            foreach(ComboBoxIdName cb in summonerStatus)
+            foreach (ComboBoxIdName cb in summonerStatus)
             {
-                if(cb.Name.Length > len)
+                if (cb.Name.Length > len)
                 {
                     len = cb.Name.Length;
                 }
@@ -798,7 +809,7 @@ namespace LOL_CLient_TOOL
             buttonRune.Text = "RUNES";
             buttonRune.Location = new Point(labelSummonerDisplayName.Location.X + labelSummonerDisplayName.Width, labelSummonerDisplayName.Location.Y);
             comboBoxSummonerStatus.Location = new Point(buttonRune.Location.X + buttonRune.Width + 5, labelSummonerDisplayName.Location.Y + 1);
-            
+
             try
             {
                 var resp = JArray.Parse(LCURequest("/lol-champions/v1/owned-champions-minimal", "GET", "").Value);
@@ -1039,9 +1050,9 @@ namespace LOL_CLient_TOOL
 
         private static void ComboBoxSummonerStatus_SelectedIndexChanged(object sender, EventArgs e)
         {
-            foreach(ComboBoxIdName combo in summonerStatus)
+            foreach (ComboBoxIdName combo in summonerStatus)
             {
-                if(comboBoxSummonerStatus.SelectedIndex == combo.Id)
+                if (comboBoxSummonerStatus.SelectedIndex == combo.Id)
                 {
                     LCURequest("/lol-chat/v1/me", "PUT", "{\"availability\": \"" + combo.Name.ToLower() + "\"}");
                 }
@@ -1057,6 +1068,15 @@ namespace LOL_CLient_TOOL
             }
         }
 
+        private static void FormChampions_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (e.CloseReason == CloseReason.UserClosing)
+            {
+                e.Cancel = true;
+                formChampions.Hide();
+            }
+        }
+
         private static void FormSummonerIcon_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (e.CloseReason == CloseReason.UserClosing)
@@ -1066,9 +1086,15 @@ namespace LOL_CLient_TOOL
             }
         }
 
+        private static async void ButtonChampions_Click(object sender, EventArgs e)
+        {
+            formChampions.Show();
+            formChampions.Focus();
+        }
+
         private static async void buttonRune_Click(object sender, EventArgs e)
         {
-            if(formSummonerRuneIsSetup == false)
+            if (formSummonerRuneIsSetup == false)
             {
                 var summonerTempRunes = JArray.Parse(LCURequest("/lol-perks/v1/pages", "GET").Value);
                 currentSummonerRunes.RunePages = new Dictionary<int, RunePage>();
@@ -1135,7 +1161,7 @@ namespace LOL_CLient_TOOL
 
         private static void ComboBoxRunesPages_SelectedIndexChanged(object sender, EventArgs e)
         {
-            foreach(PictureBox pic in FormSummonerRunes.Controls.OfType<PictureBox>())
+            foreach (PictureBox pic in FormSummonerRunes.Controls.OfType<PictureBox>())
             {
                 FormSummonerRunes.Controls.Remove(pic);
             }
@@ -1178,13 +1204,13 @@ namespace LOL_CLient_TOOL
                 img.Click += ImgMainRune_Click;
             }
             string primaryStyleId = "";
-            foreach(RunePage dd in currentSummonerRunes.RunePages.Values)
+            foreach (RunePage dd in currentSummonerRunes.RunePages.Values)
             {
                 if (dd.id.ToString() == comboBoxRunesPages.SelectedValue.ToString())
                 {
-                    foreach(PictureBox pic in FormSummonerRunes.Controls.OfType<PictureBox>())
+                    foreach (PictureBox pic in FormSummonerRunes.Controls.OfType<PictureBox>())
                     {
-                        if(pic.Name == dd.primaryStyleId.ToString())
+                        if (pic.Name == dd.primaryStyleId.ToString())
                         {
                             primaryStyleId = dd.primaryStyleId.ToString();
                             ImgMainRune_Click(pic, null);
@@ -1194,8 +1220,8 @@ namespace LOL_CLient_TOOL
             }
             x += 100;
             int count = 0;
-            List<string> dede = new List<string>{ "8000", "8100", "8200", "8300", "8400" };
-            List<string> dada = new List<string>{"8000", "8100", "8200","8300","8400" };
+            List<string> dede = new List<string> { "8000", "8100", "8200", "8300", "8400" };
+            List<string> dada = new List<string> { "8000", "8100", "8200", "8300", "8400" };
             int threshold = x - 50;
             //MessageBox.Show(threshold.ToString());
             foreach (PictureBox img in FormSummonerRunes.Controls.OfType<PictureBox>())
@@ -1276,15 +1302,15 @@ namespace LOL_CLient_TOOL
             runesSetups.Add("8300", new string[] { "8351 8360 8358", "8306 8304 8313", "8321 8316 8345", "8347 8410 8352" });
             runesSetups.Add("8400", new string[] { "8437 8439 8465", "8446 8463 8401", "8429 8444 8473", "8451 8453 8242" });
             PictureBox uneImage = (PictureBox)sender;
-            List<string> dede = new List<string> { "8000","8100","8200","8300","8400" };
+            List<string> dede = new List<string> { "8000", "8100", "8200", "8300", "8400" };
             List<PictureBox> subRune = new List<PictureBox>();
             foreach (leagueRune rune in leagueOfLegendsRunes)
             {
                 if (rune.id.ToString() == uneImage.Name)
                 {
-                    foreach(var jj in rune.slots.Values)
+                    foreach (var jj in rune.slots.Values)
                     {
-                        foreach(var ii in jj.Values)
+                        foreach (var ii in jj.Values)
                         {
                             PictureBox toto = new PictureBox();
                             toto.Image = Image.FromFile(pathRunes + ii.icon.Split(chare, StringSplitOptions.None)[ii.icon.Split(chare, StringSplitOptions.None).Length - 1]);
@@ -1313,9 +1339,9 @@ namespace LOL_CLient_TOOL
             popo.Add("8200", new int[] { 3, 6, 9 });
             popo.Add("8300", new int[] { 3, 6, 9 });
             popo.Add("8400", new int[] { 3, 6, 9 });
-            foreach(var roo in popo)//Display primaryStyleId image of runes
+            foreach (var roo in popo)//Display primaryStyleId image of runes
             {
-                if(roo.Key == uneImage.Name)
+                if (roo.Key == uneImage.Name)
                 {
                     int i = 1;
                     int y = 0;
@@ -1340,15 +1366,15 @@ namespace LOL_CLient_TOOL
             {
                 if (pic.Location.X > 240 && pic.Location.Y <= 50)
                 {
-                    if(pic.Name != uneImage.Name)
+                    if (pic.Name != uneImage.Name)
                     {
-                        if(posSubMainRune.Count == 5 && didi.Contains(pic.Name))
+                        if (posSubMainRune.Count == 5 && didi.Contains(pic.Name))
                         {
                             pic.Visible = true;
                             didi.Remove(pic.Name);
                             pic.Location = posSubMainRune[picnb];
                             picnb++;
-                        }                        
+                        }
                     }
                     else
                     {
@@ -1356,7 +1382,7 @@ namespace LOL_CLient_TOOL
                     }
                 }
             }
-            while(posSubMainRune.Count != 5)
+            while (posSubMainRune.Count != 5)
             {
                 posSubMainRune.Add(posSubMainRune.Count, new Point(395 + 55 * posSubMainRune.Count, 45));
             }
@@ -1389,9 +1415,9 @@ namespace LOL_CLient_TOOL
             {
                 apiEndPointResponse.Text = text.Key + "\n" + text.Value;
             }
-            catch(Exception ee) 
-            { 
-                Debug.WriteLine(ee); 
+            catch (Exception ee)
+            {
+                Debug.WriteLine(ee);
             }
         }
 
@@ -1402,7 +1428,7 @@ namespace LOL_CLient_TOOL
 
         private static void FormSummonerIcon_SizeChanged(object sender, EventArgs e)
         {
-            if(verifyOwnedIcons.Checked == true)
+            if (verifyOwnedIcons.Checked == true)
             {
                 int width = FormSummonerIcon.Width;
                 int x = 0, y = 0;
@@ -1422,7 +1448,7 @@ namespace LOL_CLient_TOOL
                     }
                 }
             }
-            else if(processingAllIcon == false)
+            else if (processingAllIcon == false)
             {
                 int width = FormSummonerIcon.Width;
                 int x = 0, y = 0;
@@ -1523,7 +1549,7 @@ namespace LOL_CLient_TOOL
                     //RiotLCURequest("https://127.0.0.1:" + portRiotClient + "/rso-auth/v1/session/credentials", "PUT", );
                 }
             }
-            
+
         }
 
         private async void Form1_Load(object sender, EventArgs e)
@@ -1578,6 +1604,7 @@ namespace LOL_CLient_TOOL
             //}
             //disabled until there is a good way to get summonner owned icons
             //summonerIcon.Click += new EventHandler(summonerIcon_Click);
+            this.Controls.Add(buttonChampions);
             this.Controls.Add(summonerIcon);
             //this.Controls.Add(buttonRune);
             this.Controls.Add(comboBoxSummonerStatus);
@@ -1674,7 +1701,7 @@ namespace LOL_CLient_TOOL
                 }
                 var honorData = LCURequest("/lol-honor-v2/v1/ballot", "GET");
                 JObject json = JObject.Parse(honorData.Value);
-                if(honorData.Key == "OK")
+                if (honorData.Key == "OK")
                 {
                     string[] honorCategory = { "COOL", "SHOTCALLER", "HEART" };
                     string honorDataBody = "{\"gameId\": " + json["gameId"].ToString() + ",\"honorCategory\": \"" + honorCategory[2] + "\",\"summonerId\": " + tempBestSummonerId + "}";
@@ -1689,7 +1716,7 @@ namespace LOL_CLient_TOOL
             //if (checkBoxAutoLock.Checked || checkBoxAutoBan.Checked)
             if (checkBoxAutoLock.Checked)
             {
-                
+
 
                 if (lolChampSelectV1Session.Key == "OK")
                 {
@@ -1902,7 +1929,7 @@ namespace LOL_CLient_TOOL
                 StreamReader readStream = new StreamReader(receiveStream, Encoding.UTF8);
                 return new KeyValuePair<string, string>(httpResponse.StatusCode.ToString(), readStream.ReadToEnd());
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return new KeyValuePair<string, string>("", e.Message);
             }
@@ -1965,7 +1992,7 @@ namespace LOL_CLient_TOOL
             {
                 url = "https://ddragon.leagueoflegends.com/cdn/" + version + url;
             }
-            
+
             HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create(url);
             httpWebRequest.ContentType = "application/json";
             httpWebRequest.Method = "GET";
