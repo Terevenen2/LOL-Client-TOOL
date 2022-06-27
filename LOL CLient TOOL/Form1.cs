@@ -787,6 +787,7 @@ namespace LOL_CLient_TOOL
             buttonChampions.Click += ButtonChampions_Click;
 
             formChampions.FormClosing += FormChampions_FormClosing;
+            formChampions.Load += FormChampions_Load;
 
             summonerStatus.Add(new ComboBoxIdName { Id = 0, Name = "online".ToUpper() });
             summonerStatus.Add(new ComboBoxIdName { Id = 1, Name = "away".ToUpper() });
@@ -945,6 +946,25 @@ namespace LOL_CLient_TOOL
                 comboBoxOwnedChampions.Enabled = true;
             }
         }
+        
+        private static void FormChampions_Load(object sender, EventArgs e)
+        {
+            formChampions.AutoScroll = true;
+            int x = 10, y = 25, loop = 1, index = 0;
+            List<Label> labelChampions = new List<Label>();
+            foreach (champion champ in leagueOfLegendsChampions)
+            {
+                labelChampions.Add(new Label());
+                labelChampions[index].Text = champ.name;
+                labelChampions[index].Location = new Point(x, y * loop);
+                labelChampions[index].Name = champ.name;
+
+                formChampions.Controls.Add(labelChampions[index]);
+
+                loop++;
+                index++;
+            }
+        }
 
         private static void ComboBoxOwnedChampions_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -1074,7 +1094,7 @@ namespace LOL_CLient_TOOL
             {
                 e.Cancel = true;
                 formChampions.Hide();
-            }
+            }        
         }
 
         private static void FormSummonerIcon_FormClosing(object sender, FormClosingEventArgs e)
