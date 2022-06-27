@@ -20,6 +20,7 @@
  - Advanced champions list for smart drafts handling (pick, ban, trade, runes, summoners spell and gamemods bench)
  - Auto summoner spells based on role, champions and allies
  - Auto runes scraped from the web
+ - Pre-Pick when possible
  - Notification when friend become active
  - App tray icon
  - Auto ban (with a list to prevent banning allie champion or trying to ban an already banned champion)
@@ -45,5 +46,5 @@ if you have any trouble, want to ask for a feature or report a bug you can join 
 
 <a href='https://discord.gg/nC6xcQrQHA'><img src="https://discordapp.com/api/guilds/972459878809477180/widget.png?style=banner2" alt="Discord Banner 2"/></a>
    
-     
-  
+        
+        
