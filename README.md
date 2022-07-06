@@ -46,5 +46,6 @@ if you have any trouble, want to ask for a feature or report a bug you can join 
 
 <a href='https://discord.gg/nC6xcQrQHA'><img src="https://discordapp.com/api/guilds/972459878809477180/widget.png?style=banner2" alt="Discord Banner 2"/></a>
    
-         
-        
+               
+                
+     
