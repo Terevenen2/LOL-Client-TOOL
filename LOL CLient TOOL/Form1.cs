@@ -31,6 +31,7 @@ namespace LOL_CLient_TOOL
         public static List<string> summonerIcons = new List<string>();
         public static List<string> currentSummonerOwnedIcons = new List<string>();
         public static List<string> conversationsMessageSent = new List<string>();
+        public static List<championPick> pickPriorities = new List<championPick>();
         public static string port = "";
         public static string portRiotClient = "";
         public static string autorization = "";
@@ -106,6 +107,13 @@ namespace LOL_CLient_TOOL
             bool isFlex { get; set; }
             bool isBlind { get; set; }
             bool isAram { get; set; }
+        }
+        public class championPick
+        {
+            int id { get; set; }
+            int pick { get; set; }
+            int ban { get; set; }
+            int aram { get; set; }
         }
         public class RunePage
         {
@@ -952,14 +960,47 @@ namespace LOL_CLient_TOOL
             formChampions.AutoScroll = true;
             int x = 10, y = 25, loop = 1, index = 0;
             List<Label> labelChampions = new List<Label>();
+            List<NumericUpDown> pick = new List<NumericUpDown>();
+            List<NumericUpDown> ban = new List<NumericUpDown>();
+            List<NumericUpDown> aram = new List<NumericUpDown>();
             foreach (champion champ in leagueOfLegendsChampions)
             {
                 labelChampions.Add(new Label());
                 labelChampions[index].Text = champ.name;
                 labelChampions[index].Location = new Point(x, y * loop);
                 labelChampions[index].Name = champ.name;
-
                 formChampions.Controls.Add(labelChampions[index]);
+
+                pick.Add(new NumericUpDown());
+                pick[index].Location = new Point(labelChampions[index].Location.X + labelChampions[index].Width + 10, labelChampions[index].Location.Y);
+                pick[index].Name = champ.name + "Pick";
+                pick[index].Value = 0;
+                pick[index].Minimum = 0;
+                pick[index].Maximum = 200;
+                pick[index].Increment = 1;
+                pick[index].Width = 50;
+                formChampions.Controls.Add(pick[index]);
+
+                ban.Add(new NumericUpDown());
+                ban[index].Location = new Point(pick[index].Location.X + pick[index].Width + 10, pick[index].Location.Y);
+                ban[index].Name = champ.name + "Pick";
+                ban[index].Value = 0;
+                ban[index].Minimum = 0;
+                ban[index].Maximum = 200;
+                ban[index].Increment = 1;
+                ban[index].Width = 50;
+                formChampions.Controls.Add(ban[index]);
+                
+                aram.Add(new NumericUpDown());
+                aram[index].Location = new Point(ban[index].Location.X + ban[index].Width + 10, ban[index].Location.Y);
+                aram[index].Name = champ.name + "Pick";
+                aram[index].Value = 0;
+                aram[index].Minimum = 0;
+                aram[index].Maximum = 200;
+                aram[index].Increment = 1;
+                aram[index].Width = 50;
+                formChampions.Controls.Add(aram[index]);
+
 
                 loop++;
                 index++;
