@@ -1,7 +1,8 @@
 # LOL-Client-TOOL automations for league of legends client
 <p align="center"><img src="https://user-images.githubusercontent.com/21199858/166489461-f28fbae9-b620-474e-9fc6-7a58566e584b.png" width="150"></p>
 
-<p align="center"><img src="https://user-images.githubusercontent.com/21199858/166827821-8f6d8d99-7247-43b8-96c1-d71ac94920e2.png" width="900"></p>
+<p align="center"><img src="https://cdn.discordapp.com/attachments/972461408140820540/999433188025839717/unknown.png" width="auto"></p>
+<p align="center"><img src="https://media.discordapp.net/attachments/458514723068051457/999433574837125242/unknown.png" width="auto"></p>
 
 ## Features
  - Auto lock champion
