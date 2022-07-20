@@ -78,6 +78,7 @@ namespace LOL_CLient_TOOL
         {
             public bool autoAccept { get; set; }
             public bool autoPick { get; set; }
+            public bool autoBan { get; set; }
             public bool autoPlayAgain { get; set; }
             public bool autoHonor { get; set; }
             public bool autoRole { get; set; }
@@ -88,32 +89,24 @@ namespace LOL_CLient_TOOL
             public string autoMessageText { get; set; }
             public bool autoReroll { get; set; }
             public bool autoSkin { get; set; }
-            public List<championsPrio> championsPrioList { get; set; }
+            public bool autoPrePick { get; set; }
+            public bool autoAramBenchSwap { get; set; }
+            public List<championPick> championPickList { get; set; }
         }
 
         public class championsPrio
         {
             int id { get; set; }
-            string name { get; set; }
-            bool isOwned { get; set; }
-            double prioTop { get; set; }
-            double prioJungle { get; set; }
-            double prioMid { get; set; }
-            double prioBottom { get; set; }
-            double prioUtility { get; set; }
-            double prioNoDraft { get; set; }
-            bool isDraft { get; set; }
-            bool isSoloDuo { get; set; }
-            bool isFlex { get; set; }
-            bool isBlind { get; set; }
-            bool isAram { get; set; }
-        }
-        public class championPick
-        {
-            int id { get; set; }
             int pick { get; set; }
             int ban { get; set; }
             int aram { get; set; }
+        }
+        public class championPick
+        {
+            public int Id { get; set; }
+            public int Pick { get; set; }
+            public int Ban { get; set; }
+            public int Aram { get; set; }
         }
         public class RunePage
         {
@@ -265,7 +258,6 @@ namespace LOL_CLient_TOOL
 
         public static ComboBox comboBoxRunesPages = new ComboBox();
         public static ComboBox comboBoxSummonerStatus = new ComboBox();
-        public static ComboBox comboBoxOwnedChampions = new ComboBox();
         public static ComboBox comboBoxAutoPosition1 = new ComboBox();
         public static ComboBox comboBoxAutoPosition2 = new ComboBox();
 
@@ -279,7 +271,7 @@ namespace LOL_CLient_TOOL
 
         public static CheckBox verifyOwnedIcons = new CheckBox();
         public static CheckBox checkBoxAutoAccept = new CheckBox();
-        public static CheckBox checkBoxAutoLock = new CheckBox();
+        public static CheckBox checkBoxAutoPick = new CheckBox();
         public static CheckBox checkBoxAutoBan = new CheckBox();
         public static CheckBox checkBoxAutoQPlayAgain = new CheckBox();
         public static CheckBox checkBoxAutoHonor = new CheckBox();
@@ -287,6 +279,8 @@ namespace LOL_CLient_TOOL
         public static CheckBox checkBoxAutoMessage = new CheckBox();
         public static CheckBox checkBoxAutoReroll = new CheckBox();
         public static CheckBox checkBoxAutoSkin = new CheckBox();
+        public static CheckBox checkBoxAutoPrePick = new CheckBox();
+        public static CheckBox checkBoxAutoAramBenchSwap = new CheckBox();
 
         public static TextBox apiEnpoint = new TextBox();
         public static TextBox apiRequestType = new TextBox();
@@ -737,7 +731,10 @@ namespace LOL_CLient_TOOL
                 configuration = JObject.Parse(tempConf);
                 JsonConvert.PopulateObject(tempConf, configData);
                 checkBoxAutoAccept.Checked = configData.autoAccept;
-                checkBoxAutoLock.Checked = configData.autoPick;
+                checkBoxAutoPick.Checked = configData.autoPick;
+                checkBoxAutoBan.Checked = configData.autoBan;
+                checkBoxAutoAramBenchSwap.Checked = configData.autoAramBenchSwap;
+                checkBoxAutoPrePick.Checked = configData.autoPrePick;
                 checkBoxAutoQPlayAgain.Checked = configData.autoPlayAgain;
                 checkBoxAutoHonor.Checked = configData.autoHonor;
                 checkBoxAutoPosition.Checked = configData.autoRole;
@@ -745,6 +742,35 @@ namespace LOL_CLient_TOOL
                 textBoxConversationMessage.Text = configData.autoMessageText;
                 checkBoxAutoReroll.Checked = configData.autoReroll;
                 checkBoxAutoSkin.Checked = configData.autoSkin;
+                position1 = configData.autoRolePosition1;
+                position2 = configData.autoRolePosition2;
+                if(configData.championPickList == null)
+                {
+                    configData.championPickList = new List<championPick>();
+                }
+                else//JObject.Parse duplicate the picklist somehow lets fix it
+                {
+                    int i = 0;
+                    List<int> champUniqueIds = new List<int>();
+                    List<int> toRemove = new List<int>();
+                    foreach(championPick championPick in configData.championPickList)
+                    {
+                        if (!champUniqueIds.Contains(championPick.Id))
+                        {
+                            champUniqueIds.Add(championPick.Id);
+                        }
+                        else
+                        {
+                            toRemove.Add(i);
+                        }
+                        i++;
+                    }
+                    toRemove.Reverse();
+                    foreach(int nb in toRemove)
+                    {
+                        configData.championPickList.RemoveAt(nb);
+                    }
+                }
             }
 
 
@@ -758,6 +784,7 @@ namespace LOL_CLient_TOOL
                 champion lechamp = JsonConvert.DeserializeObject<champion>(lestring);
                 leagueOfLegendsChampions.Add(lechamp);
             }
+            leagueOfLegendsChampions = leagueOfLegendsChampions.OrderBy(o => o.name).ToList();
 
             //leagueOfLegendsChampions = ;
             getSummoner();
@@ -796,6 +823,9 @@ namespace LOL_CLient_TOOL
 
             formChampions.FormClosing += FormChampions_FormClosing;
             formChampions.Load += FormChampions_Load;
+            formChampions.Text = "Champions Pick Ban and Aram bench priorities";
+            formChampions.Icon = Properties.Resources.LOL_Client_TOOL;
+
 
             summonerStatus.Add(new ComboBoxIdName { Id = 0, Name = "online".ToUpper() });
             summonerStatus.Add(new ComboBoxIdName { Id = 1, Name = "away".ToUpper() });
@@ -819,56 +849,39 @@ namespace LOL_CLient_TOOL
             buttonRune.Location = new Point(labelSummonerDisplayName.Location.X + labelSummonerDisplayName.Width, labelSummonerDisplayName.Location.Y);
             comboBoxSummonerStatus.Location = new Point(buttonRune.Location.X + buttonRune.Width + 5, labelSummonerDisplayName.Location.Y + 1);
 
-            try
-            {
-                var resp = JArray.Parse(LCURequest("/lol-champions/v1/owned-champions-minimal", "GET", "").Value);
-                foreach (var champ in resp)
-                {
-                    //MessageBox.Show(champ["ownership"]["owned"].ToString());
-                    if (champ["ownership"]["owned"].ToString() == "True")
-                    {
-                        champs.Add(champ["name"].ToString(), champ["id"].ToString());
-                        comboBoxOwnedChampions.Items.Add(champ["name"].ToString());
-                        //MessageBox.Show(champ["id"].ToString() + " " + champ["name"].ToString());
-                    }
-                }
-            }
-            catch (Exception ex) { }
-            comboBoxOwnedChampions.DropDownStyle = ComboBoxStyle.DropDownList;
-            comboBoxOwnedChampions.Location = new Point(comboBoxSummonerStatus.Location.X + comboBoxSummonerStatus.Width + 5, comboBoxSummonerStatus.Location.Y);
-            comboBoxOwnedChampions.SelectedIndexChanged += ComboBoxOwnedChampions_SelectedIndexChanged;
-            comboBoxOwnedChampions.Sorted = true;
-            var selelctedItem = comboBoxOwnedChampions.SelectedItem;
-            if (configData.autoPickChampion != null)
-            {
-                foreach (var cha in champs)
-                {
-                    if (cha.Key.Contains(configData.autoPickChampion))
-                    {
-                        instaLockChampId = cha.Value;
-                    }
-                }
-                comboBoxOwnedChampions.SelectedItem = configData.autoPickChampion;
-            }
+            
             checkBoxAutoAccept.Text = "Auto accept";
             checkBoxAutoAccept.TextAlign = ContentAlignment.MiddleLeft;
-            checkBoxAutoAccept.Location = new Point(comboBoxOwnedChampions.Location.X + comboBoxOwnedChampions.Width + 5, comboBoxOwnedChampions.Location.Y);
+            checkBoxAutoAccept.Location = new Point(comboBoxSummonerStatus.Location.X + comboBoxSummonerStatus.Width + 5, comboBoxSummonerStatus.Location.Y);
             checkBoxAutoAccept.Click += CheckBoxAutoAccept_Click;
-            checkBoxAutoLock.Text = "Auto lock";
-            checkBoxAutoLock.TextAlign = ContentAlignment.MiddleLeft;
-            checkBoxAutoLock.Location = new Point(comboBoxOwnedChampions.Location.X + comboBoxOwnedChampions.Width + 5, comboBoxOwnedChampions.Location.Y + checkBoxAutoAccept.Height);
-            checkBoxAutoLock.Click += CheckBoxAutoLock_Click;
+            checkBoxAutoPick.Text = "Auto pick";
+            checkBoxAutoPick.TextAlign = ContentAlignment.MiddleLeft;
+            checkBoxAutoPick.Location = new Point(buttonChampions.Location.X, buttonChampions.Location.Y + buttonChampions.Height);
+            checkBoxAutoPick.Click += checkBoxAutoPick_Click;
+            checkBoxAutoPrePick.Text = "Auto pre-pick";
+            checkBoxAutoPrePick.TextAlign = ContentAlignment.MiddleLeft;
+            checkBoxAutoPrePick.Location = new Point(buttonChampions.Location.X, checkBoxAutoPick.Location.Y + checkBoxAutoPick.Height);
+            checkBoxAutoPrePick.Click += CheckBoxAutoPrePick_Click;
+            checkBoxAutoBan.Text = "Auto ban";
+            checkBoxAutoBan.TextAlign = ContentAlignment.MiddleLeft;
+            checkBoxAutoBan.Location = new Point(buttonChampions.Location.X, checkBoxAutoPrePick.Location.Y + checkBoxAutoPrePick.Height);
+            checkBoxAutoBan.Click += checkBoxAutoBan_Click;
+            checkBoxAutoAramBenchSwap.Text = "Auto ARAM bench swap";
+            checkBoxAutoAramBenchSwap.TextAlign = ContentAlignment.MiddleLeft;
+            checkBoxAutoAramBenchSwap.Location = new Point(buttonChampions.Location.X, checkBoxAutoBan.Location.Y + checkBoxAutoBan.Height);
+            checkBoxAutoAramBenchSwap.Click += CheckBoxAutoAramBenchSwap_Click;
+            checkBoxAutoAramBenchSwap.AutoSize = true;
             checkBoxAutoQPlayAgain.Text = "Re Q/Play";
             checkBoxAutoQPlayAgain.TextAlign = ContentAlignment.MiddleLeft;
-            checkBoxAutoQPlayAgain.Location = new Point(comboBoxOwnedChampions.Location.X + comboBoxOwnedChampions.Width + 5, checkBoxAutoLock.Location.Y + checkBoxAutoLock.Height);
+            checkBoxAutoQPlayAgain.Location = new Point(comboBoxSummonerStatus.Location.X + comboBoxSummonerStatus.Width + 5, comboBoxSummonerStatus.Location.Y + checkBoxAutoAccept.Height);
             checkBoxAutoQPlayAgain.Click += CheckBoxAutoQPlayAgain_Click;
             checkBoxAutoHonor.Text = "Auto honor";
             checkBoxAutoHonor.TextAlign = ContentAlignment.MiddleLeft;
-            checkBoxAutoHonor.Location = new Point(comboBoxOwnedChampions.Location.X + comboBoxOwnedChampions.Width + 5, checkBoxAutoQPlayAgain.Location.Y + checkBoxAutoQPlayAgain.Height);
+            checkBoxAutoHonor.Location = new Point(comboBoxSummonerStatus.Location.X + comboBoxSummonerStatus.Width + 5, checkBoxAutoQPlayAgain.Location.Y + checkBoxAutoQPlayAgain.Height);
             checkBoxAutoHonor.Click += CheckBoxAutoHonor_Click;
             checkBoxAutoPosition.Text = "Auto role";
             checkBoxAutoPosition.TextAlign = ContentAlignment.MiddleLeft;
-            checkBoxAutoPosition.Location = new Point(checkBoxAutoAccept.Location.X + checkBoxAutoAccept.Width + 5, comboBoxOwnedChampions.Location.Y);
+            checkBoxAutoPosition.Location = new Point(checkBoxAutoAccept.Location.X + checkBoxAutoAccept.Width + 5, comboBoxSummonerStatus.Location.Y);
             checkBoxAutoPosition.Width = 68;
             checkBoxAutoPosition.Click += CheckBoxAutoPosition_Click1;
             comboBoxAutoPosition1.DropDownStyle = ComboBoxStyle.DropDownList;
@@ -944,80 +957,205 @@ namespace LOL_CLient_TOOL
                 apiEndpointCall.Enabled = false;
                 buttonRune.Enabled = false;
                 comboBoxSummonerStatus.Enabled = false;
-                comboBoxOwnedChampions.Enabled = false;
             }
             else
             {
                 apiEndpointCall.Enabled = true;
                 buttonRune.Enabled = true;
                 comboBoxSummonerStatus.Enabled = true;
-                comboBoxOwnedChampions.Enabled = true;
             }
         }
-        
-        private static void FormChampions_Load(object sender, EventArgs e)
+
+        private static void CheckBoxAutoAramBenchSwap_Click(object sender, EventArgs e)
         {
+            configData.autoAramBenchSwap = checkBoxAutoAramBenchSwap.Checked;
+            configSaveAsync();
+        }
+
+        private static void CheckBoxAutoPrePick_Click(object sender, EventArgs e)
+        {
+            configData.autoPrePick = checkBoxAutoPrePick.Checked;
+            configSaveAsync();
+        }
+
+        public async static void FormChampions_Load(object sender, EventArgs e)
+        {
+            formChampions.Visible = false;
+            Font LargeFont = new Font("Arial", 12, FontStyle.Bold);
+            Rectangle resolution = Screen.PrimaryScreen.Bounds;
+            formChampions.Width = 450;
+            formChampions.Height = resolution.Height / 2;
             formChampions.AutoScroll = true;
-            int x = 10, y = 25, loop = 1, index = 0;
+            int x = 20, y = 5, loop = 1, index = 0;
             List<Label> labelChampions = new List<Label>();
             List<NumericUpDown> pick = new List<NumericUpDown>();
             List<NumericUpDown> ban = new List<NumericUpDown>();
             List<NumericUpDown> aram = new List<NumericUpDown>();
+            List<Label> colNames = new List<Label>();
+            List<string> colText = new List<string>();
+            colText.Add("CHAMPION");
+            colText.Add("PICK");
+            colText.Add("BAN");
+            colText.Add("ARAM");
+            foreach(string text in colText)
+            {
+                colNames.Add(new Label());
+                colNames[index].Text = text;
+                colNames[index].Font = LargeFont;
+                if (text == "CHAMPION")
+                {
+                    x = 10;
+                    colNames[index].Location = new Point(x, y);
+                    x = 20;
+                }
+                else
+                {
+                    colNames[index].Location = new Point(x, y);
+                }
+                colNames[index].AutoSize = true;
+                formChampions.Controls.Add(colNames[index]);
+                formChampions.Controls.Add(colNames[index]);
+                x = x + colNames[index].Width + 12;
+                index++;
+            }
+
+            y = 30;
+            x = 10;
+            index = 0;
             foreach (champion champ in leagueOfLegendsChampions)
             {
                 labelChampions.Add(new Label());
                 labelChampions[index].Text = champ.name;
+                labelChampions[index].Font = LargeFont;
                 labelChampions[index].Location = new Point(x, y * loop);
-                labelChampions[index].Name = champ.name;
+                labelChampions[index].Name = champ.key;
+                labelChampions[index].Width = 110;
                 formChampions.Controls.Add(labelChampions[index]);
 
                 pick.Add(new NumericUpDown());
                 pick[index].Location = new Point(labelChampions[index].Location.X + labelChampions[index].Width + 10, labelChampions[index].Location.Y);
-                pick[index].Name = champ.name + "Pick";
+                pick[index].Name = champ.key;
                 pick[index].Value = 0;
                 pick[index].Minimum = 0;
                 pick[index].Maximum = 200;
                 pick[index].Increment = 1;
                 pick[index].Width = 50;
+                pick[index].MouseWheel += FormChampions_MouseWheel;
+                
                 formChampions.Controls.Add(pick[index]);
 
                 ban.Add(new NumericUpDown());
                 ban[index].Location = new Point(pick[index].Location.X + pick[index].Width + 10, pick[index].Location.Y);
-                ban[index].Name = champ.name + "Pick";
+                ban[index].Name = champ.key;
                 ban[index].Value = 0;
                 ban[index].Minimum = 0;
                 ban[index].Maximum = 200;
                 ban[index].Increment = 1;
                 ban[index].Width = 50;
+                ban[index].MouseWheel += FormChampions_MouseWheel;
+
                 formChampions.Controls.Add(ban[index]);
                 
                 aram.Add(new NumericUpDown());
                 aram[index].Location = new Point(ban[index].Location.X + ban[index].Width + 10, ban[index].Location.Y);
-                aram[index].Name = champ.name + "Pick";
+                aram[index].Name = champ.key;
                 aram[index].Value = 0;
                 aram[index].Minimum = 0;
                 aram[index].Maximum = 200;
                 aram[index].Increment = 1;
                 aram[index].Width = 50;
+                aram[index].MouseWheel += FormChampions_MouseWheel;
+
                 formChampions.Controls.Add(aram[index]);
 
+                if(configData.championPickList != null)
+                {
+                    int found = 0;
+                    foreach (championPick data in configData.championPickList)
+                    {
+                        if (data.Id.ToString() == champ.key)
+                        {
+                            pick[index].Value = data.Pick;
+                            ban[index].Value = data.Ban;
+                            aram[index].Value = data.Aram;
+                            found = 1;
+                        }
+                    }
+                    if(found == 0)
+                    {
+                        championPick tempPick = new championPick();
+                        tempPick.Id = Convert.ToInt32(champ.key);
+                        tempPick.Pick = Convert.ToInt32(pick[index].Value);
+                        tempPick.Ban = Convert.ToInt32(ban[index].Value);
+                        tempPick.Aram = Convert.ToInt32(aram[index].Value);
+                        configData.championPickList.Add(tempPick);
+                    }
+                }
+                else
+                {
+                    if(configData.championPickList == null)
+                    {
+                        configData.championPickList = new List<championPick>();
+                    }
+                    championPick tempPick = new championPick();
+                    tempPick.Id = Convert.ToInt32(champ.key);
+                    tempPick.Pick = Convert.ToInt32(pick[index].Value);
+                    tempPick.Ban = Convert.ToInt32(ban[index].Value);
+                    tempPick.Aram = Convert.ToInt32(aram[index].Value);
+                    configData.championPickList.Add(tempPick);
+                }
+
+                pick[index].ValueChanged += Form1_PickValueChanged;
+                ban[index].ValueChanged += Form1_BanValueChanged;
+                aram[index].ValueChanged += Form1_AramValueChanged;
 
                 loop++;
                 index++;
             }
+            formChampions.Visible = true;
         }
 
-        private static void ComboBoxOwnedChampions_SelectedIndexChanged(object sender, EventArgs e)
+        private static void FormChampions_MouseWheel(object sender, MouseEventArgs e)
         {
-            foreach (var cha in champs)
+            ((HandledMouseEventArgs)e).Handled = true;
+        }
+
+        private static void Form1_PickValueChanged(object sender, EventArgs e)
+        {
+            NumericUpDown numericUpDown = (NumericUpDown)sender;
+            for (int i = 0; i < configData.championPickList.Count; i++)
             {
-                if (cha.Value == comboBoxOwnedChampions.SelectedItem)
+                if (configData.championPickList[i].Id.ToString() == numericUpDown.Name)
                 {
-                    instaLockChampId = cha.Key;
+                    configData.championPickList[i].Pick = Convert.ToInt32(numericUpDown.Value);
                 }
             }
+            configSaveAsync();
+        }
 
-            configData.autoPickChampion = comboBoxOwnedChampions.SelectedItem.ToString();
+        private static void Form1_BanValueChanged(object sender, EventArgs e)
+        {
+            NumericUpDown numericUpDown = (NumericUpDown)sender;
+            for (int i = 0; i < configData.championPickList.Count; i++)
+            {
+                if (configData.championPickList[i].Id.ToString() == numericUpDown.Name)
+                {
+                    configData.championPickList[i].Ban = Convert.ToInt32(numericUpDown.Value);
+                }
+            }
+            configSaveAsync();
+        }
+
+        private static void Form1_AramValueChanged(object sender, EventArgs e)
+        {
+            NumericUpDown numericUpDown = (NumericUpDown)sender;
+            for (int i = 0; i < configData.championPickList.Count; i++)
+            {
+                if (configData.championPickList[i].Id.ToString() == numericUpDown.Name)
+                {
+                    configData.championPickList[i].Aram = Convert.ToInt32(numericUpDown.Value);
+                }
+            }
             configSaveAsync();
         }
 
@@ -1063,9 +1201,15 @@ namespace LOL_CLient_TOOL
             configSaveAsync();
         }
 
-        private static void CheckBoxAutoLock_Click(object sender, EventArgs e)
+        private static void checkBoxAutoPick_Click(object sender, EventArgs e)
         {
-            configData.autoPick = checkBoxAutoLock.Checked;
+            configData.autoPick = checkBoxAutoPick.Checked;
+            configSaveAsync();
+        }
+
+        private static void checkBoxAutoBan_Click(object sender, EventArgs e)
+        {
+            configData.autoBan = checkBoxAutoBan.Checked;
             configSaveAsync();
         }
 
@@ -1669,9 +1813,11 @@ namespace LOL_CLient_TOOL
             this.Controls.Add(summonerIcon);
             //this.Controls.Add(buttonRune);
             this.Controls.Add(comboBoxSummonerStatus);
-            this.Controls.Add(comboBoxOwnedChampions);
             this.Controls.Add(checkBoxAutoAccept);
-            this.Controls.Add(checkBoxAutoLock);
+            this.Controls.Add(checkBoxAutoPick);
+            this.Controls.Add(checkBoxAutoPrePick);
+            this.Controls.Add(checkBoxAutoAramBenchSwap);
+            this.Controls.Add(checkBoxAutoBan);
             this.Controls.Add(checkBoxAutoQPlayAgain);
             this.Controls.Add(checkBoxAutoHonor);
             this.Controls.Add(checkBoxAutoPosition);
@@ -1717,7 +1863,7 @@ namespace LOL_CLient_TOOL
         {
             //Keep json for the loop START
             var lolChampSelectV1Session = new KeyValuePair<string, string>();
-            if (checkBoxAutoReroll.Checked || checkBoxAutoLock.Checked || checkBoxAutoSkin.Checked)
+            if (checkBoxAutoReroll.Checked || checkBoxAutoPick.Checked || checkBoxAutoSkin.Checked || checkBoxAutoBan.Checked)
             {
                 lolChampSelectV1Session = LCURequest("/lol-champ-select/v1/session", "GET");
             }
@@ -1771,16 +1917,31 @@ namespace LOL_CLient_TOOL
             }
             //honor end
 
-            //auto lock start
+            //auto pick/ban start
             string actorCellId = "";
             List<string> bans = new List<string>();
-            //if (checkBoxAutoLock.Checked || checkBoxAutoBan.Checked)
-            if (checkBoxAutoLock.Checked)
+            List<string> championPickIntent = new List<string>();
+            int selectedChampionId = 0;
+            if (checkBoxAutoPick.Checked || checkBoxAutoBan.Checked)
             {
 
 
                 if (lolChampSelectV1Session.Key == "OK")
                 {
+                    List<int> championPlayable = new List<int>();
+                    var ownedChampionsMinimal = JArray.Parse(LCURequest("/lol-champions/v1/owned-champions-minimal", "GET", "").Value);
+                    foreach (var champ in ownedChampionsMinimal)
+                    {
+                        //MessageBox.Show(champ["ownership"]["owned"].ToString());
+                        if (champ["active"].ToString() == "True")
+                        {
+                            if (champ["ownership"]["owned"].ToString() == "True" || champ["ownership"]["freeToPlayReward"].ToString() == "True" || champ["freeToPlay"].ToString() == "True")
+                            {
+                                championPlayable.Add(Convert.ToInt32(champ["id"]));
+                            }
+                        }
+                    }
+
                     JObject json = JObject.Parse(lolChampSelectV1Session.Value);
 
                     foreach (var tempBan in json["bans"]["myTeamBans"])
@@ -1791,12 +1952,17 @@ namespace LOL_CLient_TOOL
                     {
                         bans.Add(tempBan.ToString());
                     }
-
-                    foreach (var team in json["myTeam"])
+                    foreach (var prePickedChamp in json["myTeam"])
                     {
-                        if (team["summonerId"].ToString() == currentSummoner.summonerId.ToString())
+                        championPickIntent.Add(prePickedChamp["championPickIntent"].ToString());
+                    }
+
+                    foreach (var player in json["myTeam"])
+                    {
+                        if (player["summonerId"].ToString() == currentSummoner.summonerId.ToString())
                         {
-                            actorCellId = team["cellId"].ToString();
+                            actorCellId = player["cellId"].ToString();
+                            selectedChampionId = Convert.ToInt32(player["championId"]);
                         }
                     }
                     foreach (var actions in json["actions"])
@@ -1805,18 +1971,102 @@ namespace LOL_CLient_TOOL
                         {
                             if (team["actorCellId"].ToString() == actorCellId)
                             {
-                                string isInProgrss = team["isInProgress"].ToString();
-                                if (isInProgrss == "True" && team["type"].ToString().Contains("pick") && !bans.Contains(instaLockChampId) && checkBoxAutoLock.Checked)
+                                string isInProgress = team["isInProgress"].ToString();
+                                //PICK
+                                if (isInProgress == "True" && team["type"].ToString().Contains("pick") && checkBoxAutoPick.Checked)
                                 {
-                                    string jsonDataForLock = "{  \"actorCellId\": " + actorCellId + ",  \"championId\": " + instaLockChampId + ",  \"completed\": true,  \"id\": " + team["id"].ToString() + ",  \"isAllyAction\": true,  \"type\": \"string\"}";
+                                    //get the champ based on prioritie and bans
+                                    int maxPrio = 0;
+                                    string champId = "";
+                                    foreach(championPick tempPick in configData.championPickList)
+                                    {
+                                        if (!bans.Contains(tempPick.Id.ToString()) && tempPick.Pick > maxPrio && championPlayable.Contains(tempPick.Id))
+                                        {
+                                            maxPrio = tempPick.Pick;
+                                            champId = tempPick.Id.ToString();
+                                        }
+                                    }
+                                    //build and make the pick request
+                                    string jsonDataForLock = "{  \"actorCellId\": " + actorCellId + ",  \"championId\": " + champId + ",  \"completed\": true,  \"id\": " + team["id"].ToString() + ",  \"isAllyAction\": true,  \"type\": \"string\"}";
                                     var resp = LCURequest("/lol-champ-select/v1/session/actions/" + team["id"].ToString(), "PATCH", jsonDataForLock);
                                 }
+                                //BAN
+                                if (isInProgress == "True" && team["type"].ToString().Contains("ban") && checkBoxAutoBan.Checked)
+                                {
+                                    //get the champ based on prioritie and bans
+                                    int maxPrio = 0;
+                                    string champId = "";
+                                    foreach (championPick tempBan in configData.championPickList)
+                                    {
+                                        if (!bans.Contains(tempBan.Id.ToString()) && !championPickIntent.Contains(tempBan.Id.ToString()) && tempBan.Ban > maxPrio)
+                                        {
+                                            maxPrio = tempBan.Ban;
+                                            champId = tempBan.Id.ToString();
+                                        }
+                                    }
+                                    //build and make the pick request
+                                    string jsonDataForLock = "{  \"actorCellId\": " + actorCellId + ",  \"championId\": " + champId + ",  \"completed\": true,  \"id\": " + team["id"].ToString() + ",  \"isAllyAction\": true,  \"type\": \"string\"}";
+                                    var resp = LCURequest("/lol-champ-select/v1/session/actions/" + team["id"].ToString(), "PATCH", jsonDataForLock);
+                                }
+                                //pre pick
+                                if (checkBoxAutoPrePick.Checked && !team["type"].ToString().Contains("ban"))
+                                {
+                                    //get the champ based on prioritie and bans
+                                    int maxPrio = 0;
+                                    string champId = "";
+                                    foreach (championPick tempPick in configData.championPickList)
+                                    {
+                                        if (!bans.Contains(tempPick.Id.ToString()) && tempPick.Pick > maxPrio && championPlayable.Contains(tempPick.Id))
+                                        {
+                                            maxPrio = tempPick.Pick;
+                                            champId = tempPick.Id.ToString();
+                                        }
+                                    }
+                                    //build and make the pick request
+                                    string jsonDataForLock = "{  \"actorCellId\": " + actorCellId + ",  \"championId\": " + champId + ",  \"completed\": true,  \"id\": " + team["id"].ToString() + ",  \"isAllyAction\": true,  \"type\": \"string\"}";
+                                    var resp = LCURequest("/lol-champ-select/v1/session/actions/" + team["id"].ToString(), "PATCH", jsonDataForLock);
+                                }
+                                
+
+
+
+
                                 //if (isInProgrss == "True" && team["type"].ToString().Contains("ban") && !bans.Contains(instaLockChampId) && checkBoxAutoBan.Checked)
                                 //{
                                 //    string jsonDataForLock = "{  \"actorCellId\": " + actorCellId + ",  \"championId\": " + instaLockChampId + ",  \"completed\": true,  \"id\": " + team["id"].ToString() + ",  \"isAllyAction\": true,  \"type\": \"string\"}";
                                 //    var resp = LCURequest("/lol-champ-select/v1/session/actions/" + team["id"].ToString(), "PATCH", jsonDataForLock);
                                 //}
                             }
+                        }
+                    }
+                    //ARAM swap bench
+                    if (checkBoxAutoAramBenchSwap.Checked)
+                    {
+                        List<int> benchedChamps = new List<int>();
+                        foreach (var id in json["benchChampionIds"])
+                        {
+                            benchedChamps.Add(Convert.ToInt32(id));
+                        }
+                        int maxPrio = 0;
+                        string champId = "";
+                        int currentChampionPrio = 0;
+                        foreach (championPick tempPick in configData.championPickList)
+                        {
+                            if (tempPick.Id == selectedChampionId)
+                            {
+                                currentChampionPrio = Convert.ToInt32(tempPick.Aram);
+                            }
+
+                            if (!bans.Contains(tempPick.Id.ToString()) && tempPick.Aram > maxPrio && championPlayable.Contains(tempPick.Id) && benchedChamps.Contains(tempPick.Id))
+                            {
+                                maxPrio = tempPick.Aram;
+                                champId = tempPick.Id.ToString();
+                            }
+                        }
+                        //bench swap
+                        if (champId != "" && currentChampionPrio < maxPrio)
+                        {
+                            var resp = LCURequest("/lol-champ-select/v1/session/bench/swap/" + champId.ToString(), "POST");
                         }
                     }
                 }
@@ -1861,9 +2111,16 @@ namespace LOL_CLient_TOOL
                 if (lolChampSelectV1Session.Key == "OK")
                 {
                     JObject json = JObject.Parse(lolChampSelectV1Session.Value);
-                    if (json["allowRerolling"].ToString().ToLower() == "true")
+                    if (json["allowRerolling"].ToString().ToLower() == "true" && Convert.ToInt32(json["rerollsRemaining"].ToString()) != 0)
                     {
-                        LCURequest("/lol-champ-select/v1/session/my-selection/reroll", "POST");
+                        int rerolls = Convert.ToInt32(json["rerollsRemaining"].ToString());
+                        int i = 0;
+                        while(i != rerolls)
+                        {
+                            LCURequest("/lol-champ-select/v1/session/my-selection/reroll", "POST");
+                            i++;
+                        }
+                        
                     }
                 }
             }
