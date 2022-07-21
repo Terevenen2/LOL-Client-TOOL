@@ -5,7 +5,10 @@
 <p align="center"><img src="https://media.discordapp.net/attachments/458514723068051457/999433574837125242/unknown.png" width="auto"></p>
 
 ## Features
- - Auto lock champion
+ - Auto pick champion
+ - Auto pre pick
+ - Auto nan
+ - Auto swap with bench in ARAM
  - Auto honor allie with best KDA
  - Auto accept match
  - Change status to online, offline or mobile (partially work)
@@ -21,11 +24,9 @@
  - Advanced champions list for smart drafts handling (pick, ban, trade, runes, summoners spell and gamemods bench)
  - Auto summoner spells based on role, champions and allies
  - Auto runes scraped from the web
- - Pre-Pick when possible
  - Notification when friend become active
  - App tray icon
- - Auto ban (with a list to prevent banning allie champion or trying to ban an already banned champion)
- - Auto swap champions with the bench and player wanting to trades based on a champion prioritie list
+ - Auto swap champions with player wanting to trades based on a champion prioritie list
  - Add the app to the tray
  - Change the design
  - Updater
