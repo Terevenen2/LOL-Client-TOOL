@@ -7,7 +7,7 @@
 ## Features
  - Auto pick champion
  - Auto pre pick
- - Auto nan
+ - Auto ban
  - Auto swap with bench in ARAM
  - Auto honor allie with best KDA
  - Auto accept match
