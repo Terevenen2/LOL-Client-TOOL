@@ -41,7 +41,7 @@
  - Change status to online, offline or mobile (make it realy work)
  - Play again still have issues
  
- ## Known problems taht I don't know how to fix
+ ## Known problems I don't know how to fix
  - The application don't work on Chinese server
 
 ## How to use
