@@ -40,6 +40,9 @@
  - Handle if the tool start and the client isnt runing
  - Change status to online, offline or mobile (make it realy work)
  - Play again still have issues
+ 
+ ## Known problems taht I don't know how to fix
+ - The application don't work on Chinese server
 
 ## How to use
 To use LOL Client TOOL juste download the lastest pre-release <a href='https://github.com/Terevenen2/LOL-Client-TOOL/releases'>here</a>, expand assets and click on LOL.CLient.TOOL.exe
