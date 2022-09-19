@@ -1,7 +1,7 @@
 # LOL-Client-TOOL automations for league of legends client
 <p align="center"><img src="https://user-images.githubusercontent.com/21199858/166489461-f28fbae9-b620-474e-9fc6-7a58566e584b.png" width="150"></p>
 
-<p align="center"><img src="https://media.discordapp.net/attachments/458514723068051457/1021452468841873478/unknown.png" width="auto"></p>
+<p align="center"><img src="https://media.discordapp.net/attachments/458514723068051457/1021454297306779648/unknown.png" width="auto"></p>
 <p align="center"><img src="https://media.discordapp.net/attachments/458514723068051457/1021452599444111500/unknown.png" width="auto"></p>
 <p align="center"><img src="https://media.discordapp.net/attachments/458514723068051457/1021452683980312737/unknown.png" width="auto"></p>
 
