@@ -381,7 +381,7 @@ namespace LOL_Client_TOOL
         {
             System.Timers.Timer aTimer = new System.Timers.Timer();
             aTimer.Elapsed += new ElapsedEventHandler(OnTimedEvent);
-            aTimer.Interval = 2000;
+            aTimer.Interval = 1000;
             aTimer.Enabled = true;
         }
 
