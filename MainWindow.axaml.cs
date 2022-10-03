@@ -1029,13 +1029,14 @@ namespace LOL_Client_TOOL
                     }
                     if (gameFlow["phase"].ToString().ToLower() == "EndOfGame".ToLower())
                     {
+                        LCURequest("/lol-player-level-up/v1/level-up-notifications", "POST");
                         LCURequest("/lol-lobby/v2/play-again", "POST");
                     }
                 }
                 //reQ/play again end
 
                 //AUTO POSITION start
-                if (configData.autoRole && gameFlow["phase"].ToString().ToLower() == "lobby" && autoPositionOnce == 0)
+                if (configData.autoRole && gameFlow["phase"].ToString().ToLower() == "lobby")
                 {
                     //{ "TOP", "JUNGLE", "MIDDLE", "BOTTOM", "UTILITY", "FILL" }
                     string tempPos1 = position1;
@@ -1048,7 +1049,6 @@ namespace LOL_Client_TOOL
                     if (tempPos2 == "SUPPORT") { tempPos2 = "UTILITY"; }
                     string json = "{\"firstPreference\":\"" + tempPos1 + "\",\"secondPreference\":\"" + tempPos2 + "\"}";
                     LCURequest("/lol-lobby/v2/lobby/members/localMember/position-preferences", "PUT", json);
-                    autoPositionOnce = 1;
                 }
                 //AUTO POSITION end
 
@@ -2256,6 +2256,7 @@ namespace LOL_Client_TOOL
 
             buttonDisconnect.Content = "Disconnect";
             buttonDisconnect.MinWidth = 150;
+            buttonDisconnect.IsEnabled = false;
             buttonDisconnect.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
             buttonDisconnect.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch;
             buttonDisconnect.HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Center;
@@ -2265,6 +2266,7 @@ namespace LOL_Client_TOOL
 
             buttonRemoveAccount.Content = "Remove account";
             buttonRemoveAccount.MinWidth = 150;
+            buttonRemoveAccount.IsEnabled = false;
             buttonRemoveAccount.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
             buttonRemoveAccount.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch;
             buttonRemoveAccount.HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Center;
