@@ -131,6 +131,7 @@ namespace LOL_Client_TOOL
             public int pickDelay { get; set; }
             public int banDelay { get; set; }
             public string leagueOfLegendsClientExe { get; set; }
+            public string lang { get; set; }
             public List<leagueOfLegendsAccount> leagueOfLegendsAccounts { get; set; }
         }
 
@@ -320,6 +321,7 @@ namespace LOL_Client_TOOL
         public static ComboBox comboBoxAutoSummonersSources = new ComboBox();
         public static ComboBox comboBoxLightOnOff = new ComboBox();
         public static ComboBox comboBoxSavedAccounts = new ComboBox();
+        public static ComboBox comboBoxLanguage = new ComboBox();
 
         public static List<ComboBoxIdName> summonerStatus = new List<ComboBoxIdName>();
 
@@ -379,10 +381,10 @@ namespace LOL_Client_TOOL
 
         private void SetTimer()
         {
-            System.Timers.Timer aTimer = new System.Timers.Timer();
-            aTimer.Elapsed += new ElapsedEventHandler(OnTimedEvent);
-            aTimer.Interval = 1000;
-            aTimer.Enabled = true;
+            //System.Timers.Timer aTimer = new System.Timers.Timer();
+            //aTimer.Elapsed += new ElapsedEventHandler(OnTimedEvent);
+            //aTimer.Interval = 1000;
+            //aTimer.Enabled = true;
         }
 
         public static void getVersion()
@@ -396,7 +398,14 @@ namespace LOL_Client_TOOL
         {
             if (!url.Contains("version"))
             {
-                url = "https://ddragon.leagueoflegends.com/cdn/" + version + url;
+                if (url.Contains("languages"))
+                {
+                    url = "https://ddragon.leagueoflegends.com/cdn/" + url;
+                }
+                else
+                {
+                    url = "https://ddragon.leagueoflegends.com/cdn/" + version + url;
+                }
             }
 
             HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create(url);
@@ -555,6 +564,20 @@ namespace LOL_Client_TOOL
             currentSummonerRerollPoints.numberOfRolls = (string)summoner["rerollPoints"]["numberOfRolls"];
             currentSummonerRerollPoints.pointsCostToRoll = (string)summoner["rerollPoints"]["pointsCostToRoll"];
             currentSummonerRerollPoints.pointsToReroll = (string)summoner["rerollPoints"]["pointsCostToReroll"];
+        }        
+        public static async Task getAllChampions()
+        {
+            string tempJsonChamp = DDragonRequest("/data/" + lang + "/champion.json");
+            JObject championsJson = JObject.Parse(tempJsonChamp);
+
+            leagueOfLegendsChampions.Clear();
+            foreach (var champData in championsJson["data"].Values())
+            {
+                string lestring = champData.ToString();
+                champion lechamp = JsonConvert.DeserializeObject<champion>(lestring);
+                leagueOfLegendsChampions.Add(lechamp);
+            }
+            leagueOfLegendsChampions = leagueOfLegendsChampions.OrderBy(o => o.name).ToList();
         }
         public static async Task configSaveAsync()
         {
@@ -567,7 +590,7 @@ namespace LOL_Client_TOOL
                 fs.Write(data, 0, data.Length);
             }
         }
-        public async void hearthBeat_Event(Object source, ElapsedEventArgs e)
+        public async void HearthBeatEvent(Object source, ElapsedEventArgs e)
         {
             var status = LCURequest("/lol-service-status/v1/lcu-status", "GET");
             if(status.Key != "OK")
@@ -602,7 +625,7 @@ namespace LOL_Client_TOOL
         {
             formLogin.Show();
         }
-        private async void OnTimedEvent(Object source, ElapsedEventArgs e)
+        private static async Task OnTimedEvent()
         {
             var currentState = LCURequest("/lol-gameflow/v1/session", "GET");
             int aaaaaaaled = 1000;
@@ -1425,21 +1448,20 @@ namespace LOL_Client_TOOL
             shardsRunes.Add("5002", "The Armor Shard");
             shardsRunes.Add("5001", "The Scaling Bonus Health Shard");
             var regionAndLanguage = JObject.Parse(LCURequest("/riotclient/get_region_locale", "GET").Value);
-            lang = regionAndLanguage["locale"].ToString();
+            if(configData.lang is null)
+            {
+                lang = regionAndLanguage["locale"].ToString();
+                configData.lang = regionAndLanguage["locale"].ToString();
+            }
+            else
+            {
+                lang = configData.lang;
+            }
             runesReforged = JArray.Parse(DDragonRequest("/data/" + "en_US" + "/runesReforged.json"));
 
-            //getting all champions
-            string tempJsonChamp = DDragonRequest("/data/" + lang + "/champion.json");
-            JObject championsJson = JObject.Parse(tempJsonChamp);
-
-
-            foreach (var champData in championsJson["data"].Values())
-            {
-                string lestring = champData.ToString();
-                champion lechamp = JsonConvert.DeserializeObject<champion>(lestring);
-                leagueOfLegendsChampions.Add(lechamp);
-            }
-            leagueOfLegendsChampions = leagueOfLegendsChampions.OrderBy(o => o.name).ToList();
+            //start getting all champions
+            getAllChampions();
+            //end getting all champions
 
             //leagueOfLegendsChampions = ;
             await getSummoner();
@@ -1580,9 +1602,10 @@ namespace LOL_Client_TOOL
                 comboBoxAutoPosition2.SelectedItem = configData.autoRolePosition2;
             }
             else { comboBoxAutoPosition2.SelectedItem = postions[1]; }
-            comboBoxAutoPosition1.SelectionChanged += ComboBoxAutoPosition1_SelectionChanged;
-            comboBoxAutoPosition2.SelectionChanged += ComboBoxAutoPosition2_SelectionChanged;
-
+            //comboBoxAutoPosition1.SelectionChanged += ComboBoxAutoPosition1_SelectionChanged;
+            //comboBoxAutoPosition2.SelectionChanged += ComboBoxAutoPosition2_SelectionChanged;
+            comboBoxAutoPosition1.AddHandler(ComboBox.SelectionChangedEvent, ComboBoxAutoPosition1_SelectionChanged);
+            comboBoxAutoPosition2.AddHandler(ComboBox.SelectionChangedEvent, ComboBoxAutoPosition2_SelectionChanged);
             checkBoxAutoReroll.Content = "Auto reroll";
             checkBoxAutoReroll.HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Left;
             checkBoxAutoReroll.VerticalContentAlignment = Avalonia.Layout.VerticalAlignment.Center;
@@ -1615,6 +1638,29 @@ namespace LOL_Client_TOOL
             }
             comboBoxLightOnOff.SelectionChanged += ComboBoxLifghtOnOff_SelectionChanged;
 
+
+            string languages = DDragonRequest("languages.json");
+            var json = JArray.Parse(languages);
+            List<string> list = new List<string>();
+            foreach(string lang in json)
+            {
+                list.Add(lang);
+            }
+            list.Sort();
+            comboBoxLanguage.Items = list;
+            if (configData.lang != null)
+            {
+                comboBoxLanguage.SelectedItem = configData.lang;
+            }
+            else
+            {
+                comboBoxLanguage.SelectedItem = lang;
+            }
+            comboBoxLanguage.HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Left;
+            comboBoxLanguage.VerticalContentAlignment = Avalonia.Layout.VerticalAlignment.Center;
+            comboBoxLanguage.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
+            comboBoxLanguage.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch;
+            comboBoxLanguage.AddHandler(ComboBox.SelectionChangedEvent, ComboBoxLanguageChanged);
 
             //checkBoxAutoRunes.Text = "Auto runes";
             //checkBoxAutoRunes.Location = new Point(comboBoxAutoPosition2.Location.X + comboBoxAutoPosition2.Width + 5, comboBoxAutoPosition2.Location.Y);
@@ -1666,7 +1712,7 @@ namespace LOL_Client_TOOL
             configSaveAsync();
         }
 
-        private static void ComboBoxAutoPosition2_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private static void ComboBoxAutoPosition2_SelectionChanged(object sender, RoutedEventArgs e)
         {
             autoPositionOnce = 0;
             if (comboBoxAutoPosition1.SelectedItem != null && comboBoxAutoPosition2.SelectedItem != null)
@@ -1681,7 +1727,7 @@ namespace LOL_Client_TOOL
             }
         }
 
-        private static void ComboBoxAutoPosition1_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private static void ComboBoxAutoPosition1_SelectionChanged(object sender, RoutedEventArgs e)
         {
             autoPositionOnce = 0;
             if (comboBoxAutoPosition1.SelectedItem != null && comboBoxAutoPosition2.SelectedItem != null)
@@ -1795,6 +1841,18 @@ namespace LOL_Client_TOOL
                     Application.Current.Styles.Add(i);
                     configData.LightOn = false;
                 }
+                configSaveAsync();
+            }
+        }        
+        
+        private static void ComboBoxLanguageChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ComboBox combobox = (ComboBox)sender;
+            if (combobox.SelectedItem != null)
+            {
+                lang = combobox.SelectedItem.ToString();
+                configData.lang = lang;
+                getAllChampions();
                 configSaveAsync();
             }
         }
@@ -2567,10 +2625,10 @@ namespace LOL_Client_TOOL
             // set source name for the new theme
 
             //hearth beat client alive
-            System.Timers.Timer hearthBeat = new System.Timers.Timer();
-            hearthBeat.Elapsed += new ElapsedEventHandler(hearthBeat_Event);
-            hearthBeat.Interval = 5000;
-            hearthBeat.Enabled = true;
+            //System.Timers.Timer hearthBeat = new System.Timers.Timer();
+            //hearthBeat.Elapsed += new ElapsedEventHandler(HearthBeatEvent);
+            //hearthBeat.Interval = 5000;
+            //hearthBeat.Enabled = true;
 
             windowMain.Content = gridMain;
             windowMain.SizeToContent = SizeToContent.WidthAndHeight;
@@ -2621,6 +2679,7 @@ namespace LOL_Client_TOOL
             gridMain.Children.Add(comboBoxAutoPosition2);
             gridMain.Children.Add(comboBoxLightOnOff);
             gridMain.Children.Add(labelInfo);
+            gridMain.Children.Add(comboBoxLanguage);
             Grid.SetColumn(labelSummonerDisplayName, 0);
             Grid.SetRow(labelSummonerDisplayName, 0);
             Grid.SetColumn(summonerIcon, 0);
@@ -2667,6 +2726,8 @@ namespace LOL_Client_TOOL
             Grid.SetRow(comboBoxLightOnOff, 0);
             Grid.SetColumn(labelInfo, gridMain.ColumnDefinitions.Count - 1);
             Grid.SetRow(labelInfo, gridMain.RowDefinitions.Count - 1);
+            Grid.SetColumn(comboBoxLanguage, 7);
+            Grid.SetRow(comboBoxLanguage, 1);
 
             //this.Controls.Add(verifyOwnedIcons);
             setupLCU();
@@ -2676,6 +2737,21 @@ namespace LOL_Client_TOOL
             FormInformationSetup();
             FormDelaysSetup();
             setupFormLogin();
+
+            var task2 = Task.Run(async () => {
+                while (true)
+                {
+                    try
+                    {
+                        await OnTimedEvent();
+                    }
+                    catch
+                    {
+                        //super easy error handling
+                    }
+                    await Task.Delay(TimeSpan.FromSeconds(1));
+                }
+            });
         }
 
 
