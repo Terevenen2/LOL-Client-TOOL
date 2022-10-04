@@ -2266,7 +2266,6 @@ namespace LOL_Client_TOOL
 
             buttonRemoveAccount.Content = "Remove account";
             buttonRemoveAccount.MinWidth = 150;
-            buttonRemoveAccount.IsEnabled = false;
             buttonRemoveAccount.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
             buttonRemoveAccount.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Stretch;
             buttonRemoveAccount.HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Center;
