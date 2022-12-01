@@ -1164,78 +1164,120 @@ namespace LOL_Client_TOOL
 
         public static void setupLCU()//for api usage
         {
+            //WMIC stopped working as of 30/11/2022
+            //try
+            //{
+            //    System.Diagnostics.ProcessStartInfo usbDevicesInfo = new System.Diagnostics.ProcessStartInfo("wmic", "PROCESS WHERE name='LeagueClientUx.exe' GET commandline");
+            //    usbDevicesInfo.RedirectStandardOutput = true;
+            //    usbDevicesInfo.UseShellExecute = false;
+            //    usbDevicesInfo.CreateNoWindow = true;
+            //    System.Diagnostics.Process process = new System.Diagnostics.Process();
+            //    process.StartInfo = usbDevicesInfo;
+            //    process.Start();
+            //    process.WaitForExit();
+            //    Console.WriteLine("ExitCode: " + process.ExitCode.ToString() + "\n");
+            //    string result = process.StandardOutput.ReadToEnd();
+            //    string[] lesArgumentsTemp = result.Split(new[] { "\" \"" }, StringSplitOptions.None);
+            //    foreach (string argument in lesArgumentsTemp)
+            //    {
+            //        string arg = argument.Replace("\"", "");
+            //        if (arg.Contains("="))
+            //        {
+            //            string[] kv = arg.Split(Convert.ToChar("="));
+            //            lesArguments.Add(kv[0], kv[1]);
+            //        }
+            //    }
+            //    byte[] data = System.Text.ASCIIEncoding.ASCII.GetBytes("riot:" + lesArguments["--remoting-auth-token"]);
+            //    autorization = Convert.ToBase64String(data);
+            //    //string laData = "PASSWORD: " + lesArguments["--remoting-auth-token"] + "\r\n" + "PORT: " + lesArguments["--app-port"] + "\r\n" + "AUTH: " + autorization;
+            //    LCUport = lesArguments["--app-port"];
+            //    lesArguments.Clear();
+            //    //throw new Exception();//testing
+            //}
+            //catch (Exception ex)
+            //{
+            //    try
+            //    {
+            //        //trying with the lock file
+            //        var process = Process.GetProcesses();
+            //        string processesPath = "";
+            //        foreach (var name in process)
+            //        {
+            //            if (name.ProcessName.ToLower().Contains("LeagueClient".ToLower()))
+            //            {
+            //                processesPath = name.MainModule.FileName;
+            //            }
+            //        }
+            //        string[] pathes = processesPath.Split(new[] { @"\" }, StringSplitOptions.None);
+            //        string newPath = "";
+            //        foreach (string str in pathes)
+            //        {
+            //            if (str.Contains("exe"))
+            //            {
+            //                newPath += "lockfile";
+            //            }
+            //            else
+            //            {
+            //                newPath += str + @"\";
+            //            }
+            //        }
+            //        string readText = "";
+            //        using (FileStream stream = File.Open(newPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            //        {
+            //            using (StreamReader reader = new StreamReader(stream))
+            //            {
+            //                readText = reader.ReadToEnd();
+            //            }
+            //        }
+            //        LCUport = readText.Split(new[] { @":" }, StringSplitOptions.None)[2];
+            //        string temp = readText.Split(new[] { @":" }, StringSplitOptions.None)[3];
+
+            //        autorization = Convert.ToBase64String(Encoding.ASCII.GetBytes("riot:" + temp));
+            //    }
+            //    catch (Exception ex2)
+            //    {
+            //    }
+            //}
             try
             {
-                System.Diagnostics.ProcessStartInfo usbDevicesInfo = new System.Diagnostics.ProcessStartInfo("wmic", "PROCESS WHERE name='LeagueClientUx.exe' GET commandline");
-                usbDevicesInfo.RedirectStandardOutput = true;
-                usbDevicesInfo.UseShellExecute = false;
-                usbDevicesInfo.CreateNoWindow = true;
-                System.Diagnostics.Process process = new System.Diagnostics.Process();
-                process.StartInfo = usbDevicesInfo;
-                process.Start();
-                process.WaitForExit();
-                Console.WriteLine("ExitCode: " + process.ExitCode.ToString() + "\n");
-                string result = process.StandardOutput.ReadToEnd();
-                string[] lesArgumentsTemp = result.Split(new[] { "\" \"" }, StringSplitOptions.None);
-                foreach (string argument in lesArgumentsTemp)
+                //trying with the lock file
+                var process = Process.GetProcesses();
+                string processesPath = "";
+                foreach (var name in process)
                 {
-                    string arg = argument.Replace("\"", "");
-                    if (arg.Contains("="))
+                    if (name.ProcessName.ToLower().Contains("LeagueClient".ToLower()))
                     {
-                        string[] kv = arg.Split(Convert.ToChar("="));
-                        lesArguments.Add(kv[0], kv[1]);
+                        processesPath = name.MainModule.FileName;
                     }
                 }
-                byte[] data = System.Text.ASCIIEncoding.ASCII.GetBytes("riot:" + lesArguments["--remoting-auth-token"]);
-                autorization = Convert.ToBase64String(data);
-                //string laData = "PASSWORD: " + lesArguments["--remoting-auth-token"] + "\r\n" + "PORT: " + lesArguments["--app-port"] + "\r\n" + "AUTH: " + autorization;
-                LCUport = lesArguments["--app-port"];
-                lesArguments.Clear();
-                //throw new Exception();//testing
-            }
-            catch (Exception ex)
-            {
-                try
+                string[] pathes = processesPath.Split(new[] { @"\" }, StringSplitOptions.None);
+                string newPath = "";
+                foreach (string str in pathes)
                 {
-                    //trying with the lock file
-                    var process = Process.GetProcesses();
-                    string processesPath = "";
-                    foreach (var name in process)
+                    if (str.Contains("exe"))
                     {
-                        if (name.ProcessName.ToLower().Contains("LeagueClient".ToLower()))
-                        {
-                            processesPath = name.MainModule.FileName;
-                        }
+                        newPath += "lockfile";
                     }
-                    string[] pathes = processesPath.Split(new[] { @"\" }, StringSplitOptions.None);
-                    string newPath = "";
-                    foreach (string str in pathes)
+                    else
                     {
-                        if (str.Contains("exe"))
-                        {
-                            newPath += "lockfile";
-                        }
-                        else
-                        {
-                            newPath += str + @"\";
-                        }
+                        newPath += str + @"\";
                     }
-                    string readText = "";
-                    using (FileStream stream = File.Open(newPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                }
+                string readText = "";
+                using (FileStream stream = File.Open(newPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    using (StreamReader reader = new StreamReader(stream))
                     {
-                        using (StreamReader reader = new StreamReader(stream))
-                        {
-                            readText = reader.ReadToEnd();
-                        }
+                        readText = reader.ReadToEnd();
                     }
-                    LCUport = readText.Split(new[] { @":" }, StringSplitOptions.None)[2];
-                    string temp = readText.Split(new[] { @":" }, StringSplitOptions.None)[3];
+                }
+                LCUport = readText.Split(new[] { @":" }, StringSplitOptions.None)[2];
+                string temp = readText.Split(new[] { @":" }, StringSplitOptions.None)[3];
 
-                    autorization = Convert.ToBase64String(Encoding.ASCII.GetBytes("riot:" + temp));
-                }
-                catch (Exception ex2)
-                {
-                }
+                autorization = Convert.ToBase64String(Encoding.ASCII.GetBytes("riot:" + temp));
+            }
+            catch (Exception ex2)
+            {
             }
         }
 
