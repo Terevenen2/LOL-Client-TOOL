@@ -24,8 +24,7 @@ using System.Threading;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using Avalonia.Threading;
-using PoniLCU;
-using static PoniLCU.LeagueClient;
+using System.Security.Cryptography.X509Certificates;
 
 namespace LOL_Client_TOOL
 {
@@ -79,8 +78,6 @@ namespace LOL_Client_TOOL
         public static int downloadedRunes = 0;
         public static int AutoQPlayAgianIntervalle = 0;
         public static int autoPositionOnce = 0;
-
-        public static LeagueClient leagueClient = new LeagueClient(credentials.cmd);
 
         public static Thread LcuCon = new Thread(setupLCU) { };
 
@@ -444,41 +441,55 @@ namespace LOL_Client_TOOL
             }
         }
 
-        public static async Task<string> LCURequest(string url = "", string method = "", string json = "")
+        public static async Task<string> LCURequest(string endpoint, HttpMethod httpMethod, string requestBody = "")
         {
+            ProcessModule leagueProcess = Process.GetProcessesByName("LeagueClientUx").First().MainModule;
+            string filename = leagueProcess.FileName;
+            int x = filename.IndexOf("LeagueClientUx.exe");
+            string dir_path = filename.Remove(x);
+            string lockfile = "";
+            using (FileStream stream = File.Open(dir_path + "lockfile", FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            {
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        lockfile = lockfile + reader.ReadLine();
+                    }
+                }
+            }
+            var httpContent = new StringContent(requestBody, Encoding.UTF8, "application/json");
             string result = "";
-            method = method.ToUpper();
-            if (method == "POST")
+            HttpClient _httpClient = new();
+            var certCollection = new X509Certificate2Collection();
+            certCollection.Import("pem.pem");
+            var riotCert = certCollection[0];
+            HttpClientHandler handler = new()
             {
-                var data = await leagueClient.Request(requestMethod.POST, url, json);
-                result = data.ToString();
-            }
-            if (method == "PUT")
+                ClientCertificateOptions = ClientCertificateOption.Manual,
+                SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls11 | System.Security.Authentication.SslProtocols.Tls,
+                ServerCertificateCustomValidationCallback =
+                (httpRequestMessage, cert, cetChain, policyErrors) =>
+                {
+                    return true;
+                }
+            };
+            handler.ClientCertificates.Add(riotCert);
+
+            _httpClient = new HttpClient(handler)
             {
-                var data = await leagueClient.Request(requestMethod.PUT, url, json);
-                result = data.ToString();
-            }
-            if (method == "PATCH")
-            {
-                var data = await leagueClient.Request(requestMethod.PATCH, url, json);
-                result = data.ToString();
-            }
-            if (method == "DELETE")
-            {
-                var data = await leagueClient.Request(requestMethod.DELETE, url);
-                result = data.ToString();
-            }
-            //System.Net.ServicePointManager.ServerCertificateValidationCallback = (senderX, certificate, chain, sslPolicyErrors) => { return true; };
-            try
-            {
-                var data = await leagueClient.Request(requestMethod.GET, url, json);
-                result = data.ToString();
-            }
-            catch (Exception e)
-            {
-                return e.Message;
-            }
-            return result;
+                BaseAddress = new Uri($"https://127.0.0.1:{lockfile.Split(":")[2]}")
+            };
+
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.UTF8.GetBytes($"riot:{lockfile.Split(":")[3]}")));
+
+            var response = await _httpClient.SendAsync(new HttpRequestMessage(httpMethod, endpoint) { Content = httpContent });
+            string responseString = string.Empty;
+
+            if (!response.IsSuccessStatusCode) Console.WriteLine($"{response.StatusCode} for endpoint : {endpoint}");
+            responseString = await response.Content.ReadAsStringAsync();
+            result = responseString;
+            return responseString;
         }
 
         public static Bitmap getIcon(string iconId)
@@ -531,7 +542,7 @@ namespace LOL_Client_TOOL
 
         public static async Task getSummoner()
         {
-            JObject summoner = JObject.Parse(LCURequest("/lol-summoner/v1/current-summoner", "GET", "").Result);
+            JObject summoner = JObject.Parse(await LCURequest("/lol-summoner/v1/current-summoner", HttpMethod.Get, ""));
             currentSummoner.accountId = (string)summoner["accountId"];
             currentSummoner.displayName = (string)summoner["displayName"];
             currentSummoner.internalName = (string)summoner["internalName"];
@@ -589,12 +600,11 @@ namespace LOL_Client_TOOL
         }
         private static async Task OnTimedEvent()
         {
-            setupLCU();
-            string currentState = LCURequest("/lol-gameflow/v1/session", "GET").Result;
+            string currentState = await LCURequest("/lol-gameflow/v1/session", HttpMethod.Get);
             int aaaaaaaled = 1000;
-            while (currentState == "None")
+            while (currentState.Contains("404"))
             {
-                currentState = LCURequest("/lol-gameflow/v1/session", "GET").Result;
+                currentState = await LCURequest("/lol-gameflow/v1/session", HttpMethod.Get);
                 Thread.Sleep(aaaaaaaled);
                 aaaaaaaled += 1000;
             }
@@ -610,7 +620,7 @@ namespace LOL_Client_TOOL
                 {
                     if(gameFlow["phase"].ToString().ToLower() == "ChampSelect".ToLower())
                     {
-                        lolChampSelectV1Session = LCURequest("/lol-champ-select/v1/session", "GET").Result;
+                        lolChampSelectV1Session = await LCURequest("/lol-champ-select/v1/session", HttpMethod.Get);
                         if (lolChampSelectV1Session != "")
                         {
                             JObject json = JObject.Parse(lolChampSelectV1Session);
@@ -623,7 +633,7 @@ namespace LOL_Client_TOOL
                 //auto accept start
                 if (configData.autoAccept && gameFlow["phase"].ToString().ToLower() == "readycheck")
                 {
-                    LCURequest("/lol-matchmaking/v1/ready-check/accept", "POST", "");
+                    LCURequest("/lol-matchmaking/v1/ready-check/accept", HttpMethod.Post, "");
                 }
                 //auto accept end
 
@@ -633,7 +643,7 @@ namespace LOL_Client_TOOL
                     //get best player for honor start
                     string tempBestSummonerId = "";
                     double tempBestSummonerKDA = 0;
-                    string gameData = LCURequest("/lol-end-of-game/v1/eog-stats-block", "GET", "").Result;
+                    string gameData = await LCURequest("/lol-end-of-game/v1/eog-stats-block", HttpMethod.Get, "");
                     if (gameData != "")
                     {
                         JObject gameDataJson = JObject.Parse(gameData);
@@ -658,13 +668,13 @@ namespace LOL_Client_TOOL
                             }
                         }
                     }
-                    string honorData = LCURequest("/lol-honor-v2/v1/ballot", "GET").Result;
+                    string honorData = await LCURequest("/lol-honor-v2/v1/ballot", HttpMethod.Get);
                     JObject json = JObject.Parse(honorData);
                     if (honorData != "")
                     {
                         string[] honorCategory = { "COOL", "SHOTCALLER", "HEART" };
                         string honorDataBody = "{\"gameId\": " + json["gameId"].ToString() + ",\"honorCategory\": \"" + honorCategory[2] + "\",\"summonerId\": " + tempBestSummonerId + "}";
-                        LCURequest("/lol-honor-v2/v1/honor-player", "POST", honorDataBody);
+                        LCURequest("/lol-honor-v2/v1/honor-player", HttpMethod.Post, honorDataBody);
                     }
                 }
                 //honor end
@@ -710,7 +720,7 @@ namespace LOL_Client_TOOL
                             {
                                 if (team["actorCellId"].ToString() == actorCellId)
                                 {
-                                    string jsonChampionsMinimal = LCURequest("/lol-champions/v1/owned-champions-minimal", "GET", "").Result;
+                                    string jsonChampionsMinimal = await LCURequest("/lol-champions/v1/owned-champions-minimal", HttpMethod.Get, "");
                                     if (jsonChampionsMinimal != "")
                                     {
                                         var ownedChampionsMinimal = JArray.Parse(jsonChampionsMinimal);
@@ -759,7 +769,7 @@ namespace LOL_Client_TOOL
 
                                         //build and make the pick request
                                         string jsonDataForLock = "{  \"actorCellId\": " + actorCellId + ",  \"championId\": " + champId + ",  \"completed\": true,  \"id\": " + team["id"].ToString() + ",  \"isAllyAction\": true,  \"type\": \"string\"}";
-                                        var resp = LCURequest("/lol-champ-select/v1/session/actions/" + team["id"].ToString(), "PATCH", jsonDataForLock);
+                                        var resp = await LCURequest("/lol-champ-select/v1/session/actions/" + team["id"].ToString(), HttpMethod.Patch, jsonDataForLock);
                                     }
                                     //BAN
                                     if (isInProgress == "True" && team["type"].ToString().Contains("ban") && configData.autoBan)
@@ -781,7 +791,7 @@ namespace LOL_Client_TOOL
                                         }
                                         //build and make the pick request
                                         string jsonDataForLock = "{  \"actorCellId\": " + actorCellId + ",  \"championId\": " + champId + ",  \"completed\": true,  \"id\": " + team["id"].ToString() + ",  \"isAllyAction\": true,  \"type\": \"string\"}";
-                                        var resp = LCURequest("/lol-champ-select/v1/session/actions/" + team["id"].ToString(), "PATCH", jsonDataForLock);
+                                        var resp = await LCURequest("/lol-champ-select/v1/session/actions/" + team["id"].ToString(), HttpMethod.Patch, jsonDataForLock);
                                     }
                                     //pre pick
                                     if (configData.autoPrePick && team["completed"].ToString() == "True")
@@ -803,13 +813,13 @@ namespace LOL_Client_TOOL
                                         string jsonDataForLock = "{  \"championId\": " + champId + "}";
                                         jsonDataForLock = "{  \"actorCellId\": " + actorCellId + ",  \"championId\": " + champId + ",  \"completed\": false,  \"id\": " + team["id"].ToString() + ",  \"isAllyAction\": true,  \"type\": \"string\"}";
 
-                                        var resp = LCURequest("/lol-champ-select/v1/session/actions/" + team["id"].ToString(), "PATCH", jsonDataForLock);
+                                        var resp = await LCURequest("/lol-champ-select/v1/session/actions/" + team["id"].ToString(), HttpMethod.Patch, jsonDataForLock);
                                     }
 
                                     //if (isInProgrss == "True" && team["type"].ToString().Contains("ban") && !bans.Contains(instaLockChampId) && checkBoxAutoBan.Checked)
                                     //{
                                     //    string jsonDataForLock = "{  \"actorCellId\": " + actorCellId + ",  \"championId\": " + instaLockChampId + ",  \"completed\": true,  \"id\": " + team["id"].ToString() + ",  \"isAllyAction\": true,  \"type\": \"string\"}";
-                                    //    var resp = LCURequest("/lol-champ-select/v1/session/actions/" + team["id"].ToString(), "PATCH", jsonDataForLock);
+                                    //    var resp = await LCURequest("/lol-champ-select/v1/session/actions/" + team["id"].ToString(), "PATCH", jsonDataForLock);
                                     //}
                                 }
                             }
@@ -842,7 +852,7 @@ namespace LOL_Client_TOOL
                             //bench swap
                             if (champId != "" && currentChampionPrio < maxPrio)
                             {
-                                var resp = LCURequest("/lol-champ-select/v1/session/bench/swap/" + champId.ToString(), "POST");
+                                var resp = await LCURequest("/lol-champ-select/v1/session/bench/swap/" + champId.ToString(), HttpMethod.Post);
                             }
                         }
                         //auto runes/ auto summoners
@@ -875,7 +885,7 @@ namespace LOL_Client_TOOL
                         //    }
 
                         //    lastRunePageBuilt = selectedChampionId.ToString();
-                        //    var agg = LCURequest("/lol-perks/v1/currentpage", "GET");
+                        //    var agg = await LCURequest("/lol-perks/v1/currentpage", HttpMethod.Get);
                         //    var currentRunePage = new JObject();
                         //    string currentPageId = "";
                         //    string currentPageEditable = "";
@@ -969,7 +979,7 @@ namespace LOL_Client_TOOL
                         //                        }
                         //                    }
                         //                }
-                        //                var resp = LCURequest("/lol-perks/v1/styles", "GET");
+                        //                var resp = await LCURequest("/lol-perks/v1/styles", HttpMethod.Get);
                         //                var styles = JArray.Parse(resp.Value);
                         //                //set the runes
                         //                //string boddy = "{\"autoModifiedSelections\":[],\"current\":true,\"id\":" + currentPageId + ",\"isActive\":true,\"isDeletable\":true,\"isEditable\":true,\"isValid\":true,\"lastModified\":" + currentRunePage["lastModified"] + ",\"name\":\"" + currentRunePage["name"] + "\",\"order\":0,\"primaryStyleId\":8000,\"selectedPerkIds\":[" + runePage.ToList()[0].Key + "," + runePage.ToList()[1].Key + "," + runePage.ToList()[2].Key + "," + runePage.ToList()[3].Key + "," + runePage.ToList()[4].Key + "," + runePage.ToList()[5].Key + "," + runePage.ToList()[6].Key + "," + runePage.ToList()[7].Key + "," + runePage.ToList()[8].Key + "],\"subStyleId\":8400}";
@@ -982,10 +992,10 @@ namespace LOL_Client_TOOL
                         //                string lastModified = DateTime.Now.ToString("yyyyMMddHHmmssffff");
                         //                string boddy = "{\"current\":true,\"id\":" + currentPageId + ",\"isActive\":true,\"isDeletable\":true,\"isEditable\":true,\"isValid\":true,\"lastModified\":" + lastModified + ",\"name\":\"" + "LOL Client TOOL" + "\",\"order\":0,\"primaryStyleId\":" + style1 + ",\"selectedPerkIds\":[" + runePage[0].Item1 + "," + runePage[1].Item1 + "," + runePage[2].Item1 + "," + runePage[3].Item1 + "," + runePage.ToList()[4].Item1 + "," + runePage.ToList()[5].Item1 + "," + runePage[6].Item1 + "," + runePage[7].Item1 + "," + runePage[8].Item1 + "],\"subStyleId\":" + style2 + "}";
                         //                //string boddy = "{\"current\":true,\"id\":" + currentPageId + ",\"isActive\":true,\"isDeletable\":true,\"isEditable\":true,\"isValid\":true,\"lastModified\":" + currentRunePage["lastModified"] + ",\"name\":\"" + currentRunePage["name"] + "\",\"order\":0,\"selectedPerkIds\":[" + runePage[0].Item1 + "," + runePage[1].Item1 + "," + runePage[2].Item1 + "," + runePage[3].Item1 + "," + runePage.ToList()[4].Item1 + "," + runePage.ToList()[5].Item1 + "," + runePage[6].Item1 + "," + runePage[7].Item1 + "," + runePage[8].Item1 + "]}";
-                        //                //LCURequest("/lol-perks/v1/pages", "POST", boddy);
+                        //                //LCURequest("/lol-perks/v1/pages", HttpMethod.Post, boddy);
                         //                LCURequest("/lol-perks/v1/pages/" + currentPageId, "DELETE");
 
-                        //                LCURequest("/lol-perks/v1/pages", "POST", boddy);
+                        //                LCURequest("/lol-perks/v1/pages", HttpMethod.Post, boddy);
                         //            }
                         //        }
                         //    }
@@ -1016,12 +1026,12 @@ namespace LOL_Client_TOOL
                 {
                     if (gameFlow["phase"].ToString().ToLower() == "Lobby".ToLower())
                     {
-                        LCURequest("/lol-lobby/v2/lobby/matchmaking/search", "POST");
+                        LCURequest("/lol-lobby/v2/lobby/matchmaking/search", HttpMethod.Post);
                     }
                     if (gameFlow["phase"].ToString().ToLower() == "EndOfGame".ToLower())
                     {
-                        LCURequest("/lol-player-level-up/v1/level-up-notifications", "POST");
-                        LCURequest("/lol-lobby/v2/play-again", "POST");
+                        LCURequest("/lol-player-level-up/v1/level-up-notifications", HttpMethod.Post);
+                        LCURequest("/lol-lobby/v2/play-again", HttpMethod.Post);
                     }
                 }
                 //reQ/play again end
@@ -1039,14 +1049,14 @@ namespace LOL_Client_TOOL
                     if (tempPos2 == "ADC") { tempPos2 = "BOTTOM"; }
                     if (tempPos2 == "SUPPORT") { tempPos2 = "UTILITY"; }
                     string json = "{\"firstPreference\":\"" + tempPos1 + "\",\"secondPreference\":\"" + tempPos2 + "\"}";
-                    LCURequest("/lol-lobby/v2/lobby/members/localMember/position-preferences", "PUT", json);
+                    LCURequest("/lol-lobby/v2/lobby/members/localMember/position-preferences", HttpMethod.Put, json);
                 }
                 //AUTO POSITION end
 
                 //AUTO MESSAGE START
                 if (configData.autoMessage && lolChampSelectV1Session != "" && gameFlow["phase"].ToString().ToLower() == "ChampSelect".ToLower())
                 {
-                    JArray json = JArray.Parse(LCURequest("/lol-chat/v1/conversations", "GET").Result);
+                    JArray json = JArray.Parse( await LCURequest("/lol-chat/v1/conversations", HttpMethod.Get));
                     foreach (var conversations in json.Root)
                     {
                         if (conversations["type"].ToString() == "championSelect")//game type: customGame 
@@ -1055,7 +1065,7 @@ namespace LOL_Client_TOOL
                             if (!conversationsMessageSent.Contains(conversationId))
                             {
                                 string boddy = "{\"body\":\"" + textBoxConversationMessage.Text + "\"}";
-                                LCURequest("/lol-chat/v1/conversations/" + conversationId + "/messages", "POST", boddy);
+                                LCURequest("/lol-chat/v1/conversations/" + conversationId + "/messages", HttpMethod.Post, boddy);
                                 conversationsMessageSent.Add(conversationId);
                             }
                         }
@@ -1075,7 +1085,7 @@ namespace LOL_Client_TOOL
                             int i = 0;
                             while (i != rerolls)
                             {
-                                LCURequest("/lol-champ-select/v1/session/my-selection/reroll", "POST");
+                                LCURequest("/lol-champ-select/v1/session/my-selection/reroll", HttpMethod.Post);
                                 i++;
                             }
 
@@ -1093,7 +1103,7 @@ namespace LOL_Client_TOOL
                         if (player["summonerId"].ToString() == currentSummoner.summonerId && player["selectedSkinId"].ToString() != "0" && selectedChampionId != 0)
                         {
                             List<string> ownedSkins = new List<string>();
-                            string skinCarousel = LCURequest("/lol-champ-select/v1/skin-carousel-skins", "GET").Result;
+                            string skinCarousel = await LCURequest("/lol-champ-select/v1/skin-carousel-skins", HttpMethod.Get);
                             if (skinCarousel != "")
                             {
                                 var skins = JArray.Parse(skinCarousel);
@@ -1116,7 +1126,7 @@ namespace LOL_Client_TOOL
                                         if (ownedSkins.Count > 0)
                                         {
                                             string changeLoadout = "{\"selectedSkinId\":" + ownedSkins[ownedSkins.Count - 1] + "}";
-                                            LCURequest("/lol-champ-select/v1/session/my-selection", "PATCH", changeLoadout);
+                                            LCURequest("/lol-champ-select/v1/session/my-selection", HttpMethod.Put, changeLoadout);
                                         }
                                     }
                                 }
@@ -1366,7 +1376,7 @@ namespace LOL_Client_TOOL
 
             return "";
         }
-        public static void loadConfig()
+        public static async void loadConfig()
         {
             string configPath = "C:\\Users\\" + Environment.UserName + "\\AppData\\Local\\LOL_Client_TOOL\\config\\";
             Directory.CreateDirectory(configPath);
@@ -1423,7 +1433,7 @@ namespace LOL_Client_TOOL
                 }
                 if (configData.leagueOfLegendsClientExe == null || configData.leagueOfLegendsClientExe == "")
                 {
-                    string installDir = LCURequest("/data-store/v1/install-dir", "GET").Result;
+                    string installDir = await LCURequest("/data-store/v1/install-dir", HttpMethod.Get);
                     if (installDir != "")
                     {
                         configData.leagueOfLegendsClientExe = installDir + @"\LeagueClient.exe";
@@ -1484,7 +1494,7 @@ namespace LOL_Client_TOOL
             //getting language
             //try
             //{
-            //    var regionAndLanguage = JObject.Parse(LCURequest("/riotclient/get_region_locale", "GET").Value);
+            //    var regionAndLanguage = JObject.Parse(LCURequest("/riotclient/get_region_locale", HttpMethod.Get).Value);
             //    if (configData.lang is null)
             //    {
             //        lang = regionAndLanguage["locale"].ToString();
@@ -1853,7 +1863,7 @@ namespace LOL_Client_TOOL
             ComboBox combobox = (ComboBox)sender;
             if (combobox.SelectedItem != null)
             {
-                LCURequest("/lol-chat/v1/me", "PUT", "{\"availability\": \"" + combobox.SelectedItem.ToString().ToLower() + "\"}");
+                LCURequest("/lol-chat/v1/me", HttpMethod.Put, "{\"availability\": \"" + combobox.SelectedItem.ToString().ToLower() + "\"}");
             }
         }
 
@@ -2652,6 +2662,7 @@ namespace LOL_Client_TOOL
 
         public MainWindow()
         {
+            setupLCU();
             isDebug();
             InitializeComponent();
             SetTimer();
